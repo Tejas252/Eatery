@@ -1,0 +1,10 @@
+.qty_form{
+    display: none;
+}
+
+.show{
+    display: inline;
+}
+.hide{
+    display: none;
+}
