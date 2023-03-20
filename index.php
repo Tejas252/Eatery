@@ -1,3 +1,7 @@
+<!-- restaurant mmanagement website -->
+
+
+
 <?php
 // if(isset($_SESSION['login'])){
   
