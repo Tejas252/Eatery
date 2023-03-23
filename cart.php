@@ -96,6 +96,7 @@ session_start();
     <!-- <header id="home" class="header">
     <div class="overlay text-white text-center" id=> -->
       <br><br><br><br><br><br><br><br>
+      <form action="assets/php/manage_order.php" method="post">
     <header class="container-fluid">
       <div class="row" id="cart-container">
         <div class="col-md-3 cart-left"></div>
@@ -144,13 +145,13 @@ session_start();
                           $qr = "select * from products  where product_no = '$pro_no'";
                           $result = mysqli_query($conn,$qr);
                           $prd = mysqli_fetch_assoc($result);
+                          $product_name = $prd['product_name'];
                           $product_img = $prd['product_img'];
                           $product_qty = $value['qty'];
                           $product_price = $prd['product_price']; 
                           $q = 0;
 
 
-                        
                         // if(isset($_POST["submit"])){
                         //   $_SESSION['product_no'] = $_POST['product_no'];
                         //   $_SESSION['qty'] = $_POST['qty'];
@@ -167,7 +168,7 @@ session_start();
                       <div class="col-4 cart-prd">
                         <img class="prd-img" src="assets/uploads/<?php echo $product_img?>" alt="hey">
                         <div class="prd-desc">
-                          <h6>Burger</h6>
+                          <h6><?php echo $product_name; ?></h6>
                           <span>Price:</span>
                           <p id="pr"> <?php echo $product_price ?> /-</p>
                           <form action="assets/php/qty_session.php" method="post">
@@ -181,7 +182,7 @@ session_start();
                       <div class="col-4">
                         <!-- <h5></h5> -->
                         <div class="textbox text-l">
-                          <input class="text-box"  id="qty<?php echo $pro_no;?>_<?php echo $product_price;?>" type="number" onchange="total(this.id)" value="<?php echo $product_qty;?>" min="1" max="10" requierd>
+                          <input class="text-box" name="qty_<?php echo $pro_no ?>" id="qty<?php echo $pro_no;?>_<?php echo $product_price;?>" type="number" onchange="total(this.id)" value="<?php echo $product_qty;?>" min="1" max="10" requierd>
                         </div>
                         
                       </div>
@@ -237,6 +238,8 @@ session_start();
         <div class="col-md-3 cart-right"></div>
        
       </div>
+      <?php// if(isset($_SESSION['ordered'])){?>
+      
                               <div class="container-fluid " >
                                   <div class="row">
                                     <div class="col-12 text-center d-flex align-items-center justify-content-center">
@@ -249,14 +252,28 @@ session_start();
                               <div class="container-fluid mt-3">
                                   <div class="row">
                                     <div class="col-12 text-center">
-                                      <input type="hidden" value="<?php echo $_SESSION['id']; ?>">
-                                      <input type="hidden" id="desc" value="">
-                                      <input type="hidden" id="tab_no" value="">
+                                     
+                                      <input type="hidden" name="cust_id" value="<?php if(isset($_SESSION['id'])){echo $_SESSION['id'];} ?>">
+                                      <input type="hidden" id="" name="status" value="ordered">
+                                      <input type="hidden" id="tab_no" name="table_no" value="<?php if(isset($_SESSION['table'])){echo $_SESSION['table'];} ?>">
 
-                                      <button type="submit" class="btn btn-primary w-25 mb-3">Make Order</button>
+                                      <button type="submit" name="order" class="btn btn-primary w-25 mb-3">Make Order</button>
                                    </div>
                                   </div>
                               </div>
+      </form>
+       <?php //}else{?>
+                                <!-- <div class="container-fluid mt-3">
+                                  <div class="row">
+                                    <div class="col-12 text-center">
+
+
+                                      <button  name="order" class="btn btn-primary w-25 mb-3">Ordered</button>
+                                   </div>
+                                  </div>
+                                </div> -->
+
+      <?php // } ?>                      
                               <!-- <div class="container-fluid mt-3">
                                   <div class="row">
                                     <div class="col-12 text-center">

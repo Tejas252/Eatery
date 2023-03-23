@@ -92,7 +92,7 @@ include('data_insert_take.php');
         <div class="col-md-3"></div>
         <div class="col-sm-6 col-md-6 col-xs-12 my-2">
           <form action="#book-table" method="post">
-            <input type="number" value="<?php if(isset($_SESSION['tt'])){echo $_SESSION['tt']; } ?>" name="table_guests" onchange="check()" id="booktable" class="form-control form-control-lg custom-form-control"
+            <input type="number" value="<?php if(isset($_SESSION['guest'])){echo $_SESSION['guest']; } ?>" name="table_guests" onchange="check()" id="booktable" class="form-control form-control-lg custom-form-control"
             placeholder="NUMBER OF GUESTS" min="1" max="5" required>
             <button type="submit" onclick="clk()" href="#book-table" class="btn btn-lg btn-primary my-4" name="find" id="rounded-btn">FIND TABLE</button>
           </form> 
@@ -122,26 +122,44 @@ include('data_insert_take.php');
               
                           // $size = <scri></scri>
                   if($_SERVER["REQUEST_METHOD"]=="POST"){
-                    if(isset($_POST['find']) && isset($_POST['table_guests'])){
-                      // echo"hello";
-                      $_SESSION['tt'] = $_POST['table_guests'];
-                      $g = $_POST['table_guests'];
-                      $qrr = "select * from book_table where table_status = 'non' && table_size >= $g";
-                      $resss = mysqli_query($conn,$qrr);
-                      $cnt = mysqli_num_rows($resss);
-                      if($cnt>0){
-                        while($table = mysqli_fetch_assoc($resss)){
-                          $no = $table['table_no'];
-                          echo " <option name='table_no' class='btn-primary' value=.$no.>Table : $no</option>";
-                          
-                        }   
-                      }else{
-                        echo " <option class='btn-primary' disabled> Not Available </option>";
+
+                    if(isset($_POST['book'])&&isset($_POST['table_no'])){
+                      $tab = $_POST['table_no'];
+                      $qr3 = "update book_table set table_status = 'res' where table_no = $tab";
+                      $res = mysqli_query($conn,$qr3);
+                      if(!$res){
+                        echo"<script>console.log('get error');</script>";
                       }
-                     
-                    }else{
-                      echo " <option class='btn-primary' disabled > Enter Number of Guests </option>";
+                      $_SESSION['table'] = $_POST['table_no'];
+          
                     }
+                    if(isset($_SESSION['table'])){
+                      $no = $_SESSION['table'];
+                      echo " <option name='table_no' class='btn-primary' value=$no>Table : $no (Booked)</option>";
+          
+                    }else{
+                      if(isset($_POST['find']) && isset($_POST['table_guests'])){
+                        // echo"hello";
+                        $_SESSION['guest'] = $_POST['table_guests'];
+                        $g = $_POST['table_guests'];
+                        $qrr = "select * from book_table where table_status = 'non' && table_size >= $g";
+                        $resss = mysqli_query($conn,$qrr);
+                        $cnt = mysqli_num_rows($resss);
+                        if($cnt>0){
+                          while($table = mysqli_fetch_assoc($resss)){
+                            $no = $table['table_no'];
+                            echo " <option name='table_no' class='btn-primary' value=$no>Table : $no</option>";
+                            
+                          }   
+                        }else{
+                          echo " <option class='btn-primary' disabled> Not Available </option>";
+                        }
+                      
+                      }else{
+                        echo " <option class='btn-primary' disabled > Enter Number of Guests </option>";
+                      }
+                    }
+                    
                   
                   }
                       
@@ -151,9 +169,11 @@ include('data_insert_take.php');
                   ?> 
             
            
-          </select><?php      if(isset($_SESSION['tt'])){
+          </select>
+          <?php    
+            if(isset($_SESSION['guest'])){
                                                 echo "<script>
-                                                let g1 = parseInt(".$_SESSION['tt'].");
+                                                let g1 = parseInt(".$_SESSION['guest'].");
                                                 console.log(g1);
                                                 if(g1>0){
                                                   document.getElementById('table_nn').disabled = false;
