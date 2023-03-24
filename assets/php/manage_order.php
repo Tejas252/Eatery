@@ -6,7 +6,7 @@ if($_SERVER["REQUEST_METHOD"]=="POST"){
 
     if(isset($_POST['order'])){
       
-        if(isset($_SESSION['id'])){
+        if(isset($_SESSION['id']) && isset($_SESSION['table'])){
             $id = $_SESSION['id'];
             $desc = $_POST['order_desc'];
             $table_no = $_SESSION['table'];
@@ -33,8 +33,8 @@ if($_SERVER["REQUEST_METHOD"]=="POST"){
                     $qrr = "insert into orders (customer_id,product_id,qty,order_desc,table_no,status) values ($id,$pro_no,$qty,'$desc','$table_no','$status')";
                     $res = mysqli_query($conn,$qrr);
                     if($res){
-                    header("location:../../index.php");
                     $_SESSION['ordered'] = true;
+                    header("location:../../index.php");
                     //   echo "<script>console.log('$table_no');</script>";
                     }else{
                     header("location:login.php");
@@ -43,7 +43,7 @@ if($_SERVER["REQUEST_METHOD"]=="POST"){
 
             
         }else{
-            echo"no no no ";
+            echo"<script>alert('First Book Table or Login'); window.location.href = '../../index.php';</script>";
         }
 
         
@@ -55,7 +55,7 @@ if($_SERVER["REQUEST_METHOD"]=="POST"){
         $qr4 = "update orders set status = '$sts' where customer_id = '$cid'";
         $re = mysqli_query($conn,$qr4);
         if($re){
-            header("location:../../index.php");
+            header("location:../../admin.php");
         }else{
             echo "<script>console.log('error in update status');</script>";
         }

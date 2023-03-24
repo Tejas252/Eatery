@@ -175,6 +175,7 @@ session_start();
                                     <option name="status" value="Ordered">Ordered</option>
                                 </select>
                                 <input type="hidden" name="id" value="<?php echo $orders['customer_id']; ?>">
+                                <input type="hidden" name="table_no" value="<?php echo $orders['table_no']; ?>">
                                 <!-- <input type="submit" value="✔" name="change"> -->
                                 <button type="submit" name="change">✔</button>
                                 <!-- <h5><?php // echo $orders['status']; ?></h5> -->

@@ -238,8 +238,12 @@ session_start();
         <div class="col-md-3 cart-right"></div>
        
       </div>
-      <?php// if(isset($_SESSION['ordered'])){?>
-      
+      <?php// $_SESSION['ordered'] = false; ?>
+      <?php if(!isset($_SESSION['ordered'])){ ?>
+                
+
+         
+        
                               <div class="container-fluid " >
                                   <div class="row">
                                     <div class="col-12 text-center d-flex align-items-center justify-content-center">
@@ -255,15 +259,14 @@ session_start();
                                      
                                       <input type="hidden" name="cust_id" value="<?php if(isset($_SESSION['id'])){echo $_SESSION['id'];} ?>">
                                       <input type="hidden" id="" name="status" value="ordered">
-                                      <input type="hidden" id="tab_no" name="table_no" value="<?php if(isset($_SESSION['table'])){echo $_SESSION['table'];} ?>">
-
                                       <button type="submit" name="order" class="btn btn-primary w-25 mb-3">Make Order</button>
                                    </div>
                                   </div>
                               </div>
       </form>
-       <?php //}else{?>
-                                <!-- <div class="container-fluid mt-3">
+      
+       <?php }else {?>
+                                <div class="container-fluid mt-3">
                                   <div class="row">
                                     <div class="col-12 text-center">
 
@@ -271,9 +274,11 @@ session_start();
                                       <button  name="order" class="btn btn-primary w-25 mb-3">Ordered</button>
                                    </div>
                                   </div>
-                                </div> -->
+                                </div>
+       </form>
 
-      <?php // } ?>                      
+      <?php  } ?>      
+                    
                               <!-- <div class="container-fluid mt-3">
                                   <div class="row">
                                     <div class="col-12 text-center">
