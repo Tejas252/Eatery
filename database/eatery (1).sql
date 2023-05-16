@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 20, 2023 at 02:53 PM
+-- Generation Time: May 16, 2023 at 05:24 AM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 8.2.0
 
@@ -40,7 +40,7 @@ CREATE TABLE `book_table` (
 INSERT INTO `book_table` (`table_no`, `table_size`, `table_status`) VALUES
 (2, 3, 'non'),
 (3, 2, 'non'),
-(4, 4, 'non'),
+(4, 4, 'res'),
 (5, 2, 'non');
 
 -- --------------------------------------------------------
@@ -66,7 +66,9 @@ INSERT INTO `customer` (`cust_id`, `cust_username`, `cust_name`, `cust_mobile`, 
 (4, 'tejas10', 'tejas savaliya', 2147483647, 'tejas10@gmail.com', 'tejas10'),
 (5, 'rumit10', 'rumit savaliya', 1234561234, 'rumit10@gmail.com', '123456'),
 (15, 'deep1234', 'deep', 9512545142, 'deepsavaliya265@gmail.com', '123456'),
-(17, 'deep123', '1223', 2315324321, 'deep@123gmail.com', '123');
+(17, 'deep123', '1223', 2315324321, 'deep@123gmail.com', '123'),
+(18, 'dev10', 'dev suthar', 1234567881, 'dev10@gmail.com', '123456'),
+(19, 'meet2525', 'pansuriya meet', 9824240262, 'meetpansuriya93@gmail.com', 'meet2525@');
 
 -- --------------------------------------------------------
 
@@ -77,11 +79,68 @@ INSERT INTO `customer` (`cust_id`, `cust_username`, `cust_name`, `cust_mobile`, 
 CREATE TABLE `orders` (
   `order_id` int(4) NOT NULL,
   `customer_id` int(4) NOT NULL,
+  `product_id` int(6) NOT NULL,
+  `qty` int(2) NOT NULL,
   `order_desc` varchar(100) NOT NULL,
   `table_no` int(3) NOT NULL,
-  `oreder_time` time(6) NOT NULL DEFAULT current_timestamp(),
+  `oreder_time` datetime NOT NULL DEFAULT current_timestamp(),
   `status` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO `orders` (`order_id`, `customer_id`, `product_id`, `qty`, `order_desc`, `table_no`, `oreder_time`, `status`) VALUES
+(13, 4, 7, 3, '123456789', 4, '2023-05-15 00:00:00', 'done'),
+(14, 4, 1, 10, '123456789', 4, '2023-05-15 00:00:00', 'done'),
+(15, 4, 2, 5, '123456789', 4, '2023-05-15 00:00:00', 'done'),
+(16, 18, 1, 4, '', 4, '2023-05-15 00:00:00', 'done'),
+(17, 18, 2, 3, '', 4, '2023-05-15 00:00:00', 'done'),
+(18, 5, 1, 4, 'wojdcalksmcnlkandcs', 3, '2023-05-15 00:00:00', 'done'),
+(19, 4, 1, 2, 'more cheese', 5, '2023-05-15 00:00:00', 'done'),
+(20, 4, 3, 3, 'more cheese', 5, '2023-05-15 00:00:00', 'done'),
+(21, 4, 1, 2, 'mmmmmm', 5, '2023-05-15 00:00:00', 'done'),
+(22, 4, 3, 3, 'mmmmmm', 5, '2023-05-15 00:00:00', 'done'),
+(23, 4, 1, 2, 'wertyui', 5, '2023-05-15 00:00:00', 'done'),
+(24, 4, 3, 3, 'wertyui', 5, '2023-05-15 00:00:00', 'done'),
+(25, 4, 1, 2, '', 5, '2023-05-15 00:00:00', 'done'),
+(26, 4, 3, 3, '', 5, '2023-05-15 00:00:00', 'done'),
+(27, 4, 1, 2, '', 5, '2023-05-15 00:00:00', 'done'),
+(28, 4, 3, 3, '', 5, '2023-05-15 00:00:00', 'done'),
+(29, 4, 1, 2, '2345678', 5, '2023-05-15 00:00:00', 'done'),
+(30, 4, 3, 3, '2345678', 5, '2023-05-15 00:00:00', 'done'),
+(31, 4, 1, 2, '', 5, '2023-05-15 00:00:00', 'done'),
+(32, 4, 3, 3, '', 5, '2023-05-15 00:00:00', 'done'),
+(33, 4, 5, 3, 'wertyu', 2, '2023-05-15 00:00:00', 'done'),
+(34, 4, 6, 4, 'wertyu', 2, '2023-05-15 00:00:00', 'done'),
+(35, 4, 6, 4, 'more cheese', 5, '2023-05-15 00:00:00', 'done'),
+(36, 4, 11, 5, 'more cheese', 5, '2023-05-15 00:00:00', 'done'),
+(39, 4, 2, 6, 'ertyvbn', 2, '2023-05-15 00:00:00', 'done'),
+(40, 4, 7, 6, 'ertyvbn', 2, '2023-05-15 00:00:00', 'done'),
+(41, 19, 1, 2, 'add more chesse', 5, '2023-05-15 00:00:00', 'done'),
+(42, 18, 2, 7, 'ert', 2, '2023-05-15 00:00:00', 'done'),
+(43, 18, 3, 5, 'ert', 2, '2023-05-15 00:00:00', 'done'),
+(44, 4, 5, 4, '09876resdfghjkl,kmnbv', 4, '2023-05-15 00:00:00', 'done'),
+(45, 4, 11, 1, '09876resdfghjkl,kmnbv', 4, '2023-05-15 00:00:00', 'done'),
+(46, 4, 1, 3, 'make cheesy more', 2, '2023-05-15 00:00:00', 'done'),
+(47, 4, 12, 4, 'make cheesy more', 2, '2023-05-15 00:00:00', 'done'),
+(48, 4, 2, 2, 'poiuytrewq', 3, '2023-05-15 00:00:00', 'done'),
+(49, 5, 2, 4, '', 4, '2023-05-15 00:00:00', 'done'),
+(50, 5, 2, 5, '', 5, '2023-05-15 00:00:00', 'done'),
+(51, 4, 2, 3, '', 2, '2023-05-15 00:00:00', 'done'),
+(52, 5, 2, 5, '', 2, '2023-05-15 00:00:00', 'done'),
+(53, 5, 5, 4, '', 2, '2023-05-15 00:00:00', 'done'),
+(54, 5, 6, 5, '', 2, '2023-05-15 00:00:00', 'done'),
+(55, 5, 2, 2, '', 2, '2023-05-15 00:00:00', ''),
+(56, 5, 5, 4, '', 2, '2023-05-15 00:00:00', ''),
+(57, 5, 6, 5, '', 2, '2023-05-15 00:00:00', ''),
+(58, 5, 2, 2, 'qwertyuioplmngfcxza', 2, '2023-05-15 00:00:00', 'done'),
+(59, 5, 10, 2, 'qwertyuioplmngfcxza', 2, '2023-05-15 00:00:00', 'done'),
+(60, 5, 6, 4, 'kfjrenvkc jedcvevjds mcjd vc', 2, '2023-05-15 08:03:28', 'done'),
+(61, 5, 7, 4, 'kfjrenvkc jedcvevjds mcjd vc', 2, '2023-05-15 08:03:28', 'done'),
+(62, 5, 4, 4, '', 4, '2023-05-15 14:33:24', ''),
+(63, 5, 5, 4, '', 2, '2023-05-15 14:34:49', 'done');
 
 -- --------------------------------------------------------
 
@@ -156,19 +215,19 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT for table `customer`
 --
 ALTER TABLE `customer`
-  MODIFY `cust_id` int(3) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `cust_id` int(3) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(4) NOT NULL AUTO_INCREMENT;
+  MODIFY `order_id` int(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `product_id` int(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `product_id` int(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
