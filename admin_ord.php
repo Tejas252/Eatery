@@ -1,5 +1,5 @@
 <?php
-include 'assets/php/config.php';
+include ('assets/php/config.php');
 session_start();
 // include('data_insert_take.php');
 // include('assets/php.config.php');
@@ -34,7 +34,7 @@ session_start();
    .te{
     background: transparent;
     border: none;
-   }
+   }    
 </style>
   <!-- <link rel="stylesheet" href="cart.css"> -->
 </head>
@@ -134,7 +134,7 @@ session_start();
                 <div class="container-fluid text-c" id="cart-head">
                     
                 <?php 
-                    $qr = "select * from orders where status = 'ordered'";
+                    $qr = "select * from orders where status = 'accepted' || status = 'deliverd'";
                     $res = mysqli_query($conn,$qr);
                     $nid = 1;
                     while($orders = mysqli_fetch_assoc($res)) {
@@ -171,8 +171,8 @@ session_start();
                             <form action="assets/php/manage_order.php" method="post">
                                 <select name="status" id="">
                                     <option name="status" value="accepted">Accepted</option>
+                                    <option name="status" value="deliverd">Deliverd</option>
                                     <option name="status" value="done">Done</option>
-                                    <option name="status" value="Ordered">Ordered</option>
                                 </select>
                                 <input type="hidden" name="id" value="<?php echo $orders['customer_id']; ?>">
                                 <input type="hidden" name="order_id" value="<?php echo $orders['order_id']; ?>">

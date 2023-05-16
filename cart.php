@@ -96,7 +96,7 @@ session_start();
     <!-- <header id="home" class="header">
     <div class="overlay text-white text-center" id=> -->
       <br><br><br><br><br><br><br><br>
-      <form action="assets/php/manage_order.php" method="post">
+  <form action="assets/php/manage_order.php" method="post">
     <header class="container-fluid">
       <div class="row" id="cart-container">
         <div class="col-md-3 cart-left"></div>
@@ -171,10 +171,13 @@ session_start();
                           <h6><?php echo $product_name; ?></h6>
                           <span>Price:</span>
                           <p id="pr"> <?php echo $product_price ?> /-</p>
+                          <div>
                           <form action="assets/php/qty_session.php" method="post">
                             <input type="hidden" name="no" value="<?php echo $value['no']; ?>">
-                            <button name="remove">Remove</button>
+                            <input type="submit" name="remove" value="Remove"></input>
                           </form>
+                          </div>
+                          
                           
                         </div>
                         
@@ -260,10 +263,11 @@ session_start();
                                       <input type="hidden" name="cust_id" value="<?php if(isset($_SESSION['id'])){echo $_SESSION['id'];} ?>">
                                       <input type="hidden" id="" name="status" value="ordered">
                                       <button type="submit" name="order" class="btn btn-primary w-25 mb-3">Make Order</button>
+                                      <a href="assets/php/history.php">📝</a>
                                    </div>
                                   </div>
                               </div>
-      </form>
+      
       
        <?php }else {?>
                                 <div class="container-fluid mt-3">
@@ -272,10 +276,22 @@ session_start();
 
 
                                       <button  name="order" class="btn btn-primary w-25 mb-3">Ordered</button>
+                                      <?php
+                                      $id = $_SESSION['id'];
+                                      $or = 'ordered';
+                                      $sql = "select * from orders where customer_id = $id && status = 'ordered' || status = 'accepted' || status = 'Deliverd'";
+                                      $res = mysqli_query($conn,$sql);
+                                      // print_r($res);
+                                      $orders = mysqli_fetch_assoc($res);     
+                                      if(isset($orders['status'])){                       
+                                      ?>
+                                      <p  name="order" class="btn btn-primary w-25 mb-3"><?php echo $orders['status']; }?></p>
+                                      <a href="assets/php/history.php">📝</a>
+
                                    </div>
                                   </div>
                                 </div>
-       </form>
+     
 
       <?php  } ?>      
                     
@@ -287,6 +303,7 @@ session_start();
                                   </div>
                               </div> -->
     </header>
+    </form>
     <script>
                     // var prd_qty = ;
                     // document.getElementById('qty').value = prd_qty;
