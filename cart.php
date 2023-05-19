@@ -96,6 +96,7 @@ session_start();
     <!-- <header id="home" class="header">
     <div class="overlay text-white text-center" id=> -->
       <br><br><br><br><br><br><br><br>
+  <form action="assets/php/manage_order.php" method="post">
     <header class="container-fluid">
       <div class="row" id="cart-container">
         <div class="col-md-3 cart-left"></div>
@@ -144,13 +145,13 @@ session_start();
                           $qr = "select * from products  where product_no = '$pro_no'";
                           $result = mysqli_query($conn,$qr);
                           $prd = mysqli_fetch_assoc($result);
+                          $product_name = $prd['product_name'];
                           $product_img = $prd['product_img'];
                           $product_qty = $value['qty'];
                           $product_price = $prd['product_price']; 
                           $q = 0;
 
 
-                        
                         // if(isset($_POST["submit"])){
                         //   $_SESSION['product_no'] = $_POST['product_no'];
                         //   $_SESSION['qty'] = $_POST['qty'];
@@ -167,13 +168,16 @@ session_start();
                       <div class="col-4 cart-prd">
                         <img class="prd-img" src="assets/uploads/<?php echo $product_img?>" alt="hey">
                         <div class="prd-desc">
-                          <h6>Burger</h6>
+                          <h6><?php echo $product_name; ?></h6>
                           <span>Price:</span>
                           <p id="pr"> <?php echo $product_price ?> /-</p>
+                          <div>
                           <form action="assets/php/qty_session.php" method="post">
                             <input type="hidden" name="no" value="<?php echo $value['no']; ?>">
-                            <button name="remove">Remove</button>
+                            <input type="submit" name="remove" value="Remove"></input>
                           </form>
+                          </div>
+                          
                           
                         </div>
                         
@@ -181,7 +185,7 @@ session_start();
                       <div class="col-4">
                         <!-- <h5></h5> -->
                         <div class="textbox text-l">
-                          <input class="text-box"  id="qty<?php echo $pro_no;?>_<?php echo $product_price;?>" type="number" onchange="total(this.id)" value="<?php echo $product_qty;?>" min="1" max="10" requierd>
+                          <input class="text-box" name="qty_<?php echo $pro_no ?>" id="qty<?php echo $pro_no;?>_<?php echo $product_price;?>" type="number" onchange="totali(this.id)" value="<?php echo $product_qty;?>" min="1" max="10" requierd>
                         </div>
                         
                       </div>
@@ -224,7 +228,7 @@ session_start();
                                   <div class="col" id="tax">000</div>
                                 </div>
                                 <div class="row">
-                                  <div class="col"id="final_total">0000</div>
+                                     <div class="col" id="final_total">0000</div>
                                 </div>
                               </div>
                              
@@ -237,6 +241,12 @@ session_start();
         <div class="col-md-3 cart-right"></div>
        
       </div>
+      <?php// $_SESSION['ordered'] = false; ?>
+      <?php if(!isset($_SESSION['ordered'])){ ?>
+                
+
+         
+        
                               <div class="container-fluid " >
                                   <div class="row">
                                     <div class="col-12 text-center d-flex align-items-center justify-content-center">
@@ -249,14 +259,43 @@ session_start();
                               <div class="container-fluid mt-3">
                                   <div class="row">
                                     <div class="col-12 text-center">
-                                      <input type="hidden" value="<?php echo $_SESSION['id']; ?>">
-                                      <input type="hidden" id="desc" value="">
-                                      <input type="hidden" id="tab_no" value="">
-
-                                      <button type="submit" class="btn btn-primary w-25 mb-3">Make Order</button>
+                                     
+                                      <input type="hidden" name="cust_id" value="<?php if(isset($_SESSION['id'])){echo $_SESSION['id'];} ?>">
+                                      <input type="hidden" id="" name="status" value="ordered">
+                                      <input type="hidden" id="bill" value="" name="total">
+                                      <button type="submit" name="order" class="btn btn-primary w-25 mb-3">Make Order</button>
+                                      <a href="assets/php/history.php">📝</a>
                                    </div>
                                   </div>
                               </div>
+      
+      
+       <?php }else {?>
+                                <div class="container-fluid mt-3">
+                                  <div class="row">
+                                    <div class="col-12 text-center">
+
+
+                                      <p  name="order" class="btn btn-primary w-25 mb-3">Ordered</p>
+                                      <?php
+                                      $id = $_SESSION['id'];
+                                      $or = 'ordered';
+                                      $sql = "select * from orders where customer_id = $id && status = 'ordered' || status = 'accepted' || status = 'Deliverd'";
+                                      $res = mysqli_query($conn,$sql);
+                                      // print_r($res);
+                                      $orders = mysqli_fetch_assoc($res);     
+                                      if(isset($orders['status'])){                       
+                                      ?>
+                                      <p  name="order" class="btn btn-primary w-25 mb-3"><?php echo $orders['status']; }?></p>
+                                      <a href="assets/php/history.php">📝</a>
+
+                                   </div>
+                                  </div>
+                                </div>
+     
+
+      <?php  } ?>      
+                    
                               <!-- <div class="container-fluid mt-3">
                                   <div class="row">
                                     <div class="col-12 text-center">
@@ -265,6 +304,7 @@ session_start();
                                   </div>
                               </div> -->
     </header>
+    </form>
     <script>
                     // var prd_qty = ;
                     // document.getElementById('qty').value = prd_qty;
@@ -291,6 +331,8 @@ session_start();
                       let tax1 = (3*sum1)/100;
                       document.getElementById("tax").innerText = tax1; 
                       document.getElementById("final_total").innerText = (sum1 + parseInt(document.getElementById("tax").innerText)); 
+                      document.getElementById("bill").value = document.getElementById("final_total").innerText;
+                      // console.log(document.getElementById("bill").value);
                       // document.getElementById('sub_sub_total').innnerText = sum;
                       document.getElementById("sub_sub_total").innerText = sum1;       
 
@@ -304,7 +346,7 @@ session_start();
                         // alert(val);
                         // return val;
                     }
-                    function total(id){
+                    function totali(id){
                       // console.log(id);
                       var ids = id.split('_');
                       // console.log(ids);
@@ -333,7 +375,8 @@ session_start();
                       let tax = (3*sum)/100;
                       document.getElementById("tax").innerText = tax; 
                       document.getElementById("final_total").innerText = (sum + parseInt(document.getElementById("tax").innerText)); 
-
+                      document.getElementById("bill").value = document.getElementById("final_total").innerText;
+                      // console.log(document.getElementById("bill").value);
                         
                       
                     }
