@@ -48,7 +48,7 @@ session_start();
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav">
         <li class="nav-item">      
-          <input type="button" value="Home"  class="nav-link te"  href="" onclick="home(this.name)" name="index.php#Home">
+          <input type="button" value="Add Items"  class="nav-link te"  href="" onclick="home(this.name)" name="data_insert.php">
         </li>
         <li class="nav-item">
         <input type="button" value="Accept"  class="nav-link te"  href="" onclick="home(this.name)" name="admin.php">
@@ -59,6 +59,9 @@ session_start();
         </li>
         <li class="nav-item">
         <input type="button" value="History"  class="nav-link te"  href="" onclick="home(this.name)" name="admin_history.php">
+        </li>
+        <li class="nav-item">
+        <input type="button" value="Products"  class="nav-link te"  href="" onclick="home(this.name)" name="products.php">
         </li>
         <li class="nav-item">
           <a class="nav-link" href="<?php if(isset($_SESSION['login'])){echo'assets/php/logout.php';}else{echo 'login.php';} ?>"><?php if(isset($_SESSION['login'])){echo'Log-out';}else{echo 'Login';} ?></a>

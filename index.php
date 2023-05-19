@@ -94,7 +94,8 @@ include('data_insert_take.php');
           <form action="#book-table" method="post">
             <input type="number" value="<?php if(isset($_SESSION['guest'])){echo $_SESSION['guest']; } ?>" name="table_guests" onchange="check()" id="booktable" class="form-control form-control-lg custom-form-control"
             placeholder="NUMBER OF GUESTS" min="1" max="5" required>
-            <button type="submit" onclick="clk()" href="#book-table" class="btn btn-lg btn-primary my-4" name="find" id="rounded-btn">FIND TABLE</button>
+           
+            <?php  if(isset($_SESSION['id'])){echo ' <button type="submit" onclick="clk()" href="#book-table" class="btn btn-lg btn-primary my-4" name="find" id="rounded-btn" >FIND TABLE</button>';}else{ echo "<p class='btn btn-lg btn-primary my-4'> Login First</p>"; }  ?> 
           </form> 
         </div>
         <div class="col-md-3"></div>
@@ -245,7 +246,7 @@ include('data_insert_take.php');
     <div id="pizza" class="prdlist">
       <?php
         include('data_insert_take.php');
-        $qr2 = "select * from products where product_type = 'pizza'";
+        $qr2 = "select * from products where product_type = 'pizza' and product_qty > 0";
         $result = mysqli_query($conn, $qr2);
         if (mysqli_num_rows($result) > 0) {
           while ($image = mysqli_fetch_assoc($result)) {
@@ -278,7 +279,7 @@ include('data_insert_take.php');
     <div id="burger" class="prdlist hide">
       <?php
         include('data_insert_take.php');
-        $qr2 = "select * from products where product_type = 'Burger'";
+        $qr2 = "select * from products where product_type = 'Burger' and product_qty > 0";
         $result = mysqli_query($conn, $qr2);
         if (mysqli_num_rows($result) > 0) {
           while ($image = mysqli_fetch_assoc($result)) {

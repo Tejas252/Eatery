@@ -185,7 +185,7 @@ session_start();
                       <div class="col-4">
                         <!-- <h5></h5> -->
                         <div class="textbox text-l">
-                          <input class="text-box" name="qty_<?php echo $pro_no ?>" id="qty<?php echo $pro_no;?>_<?php echo $product_price;?>" type="number" onchange="total(this.id)" value="<?php echo $product_qty;?>" min="1" max="10" requierd>
+                          <input class="text-box" name="qty_<?php echo $pro_no ?>" id="qty<?php echo $pro_no;?>_<?php echo $product_price;?>" type="number" onchange="totali(this.id)" value="<?php echo $product_qty;?>" min="1" max="10" requierd>
                         </div>
                         
                       </div>
@@ -228,7 +228,7 @@ session_start();
                                   <div class="col" id="tax">000</div>
                                 </div>
                                 <div class="row">
-                                  <div class="col"id="final_total">0000</div>
+                                     <div class="col" id="final_total">0000</div>
                                 </div>
                               </div>
                              
@@ -262,6 +262,7 @@ session_start();
                                      
                                       <input type="hidden" name="cust_id" value="<?php if(isset($_SESSION['id'])){echo $_SESSION['id'];} ?>">
                                       <input type="hidden" id="" name="status" value="ordered">
+                                      <input type="hidden" id="bill" value="" name="total">
                                       <button type="submit" name="order" class="btn btn-primary w-25 mb-3">Make Order</button>
                                       <a href="assets/php/history.php">📝</a>
                                    </div>
@@ -275,7 +276,7 @@ session_start();
                                     <div class="col-12 text-center">
 
 
-                                      <button  name="order" class="btn btn-primary w-25 mb-3">Ordered</button>
+                                      <p  name="order" class="btn btn-primary w-25 mb-3">Ordered</p>
                                       <?php
                                       $id = $_SESSION['id'];
                                       $or = 'ordered';
@@ -330,6 +331,8 @@ session_start();
                       let tax1 = (3*sum1)/100;
                       document.getElementById("tax").innerText = tax1; 
                       document.getElementById("final_total").innerText = (sum1 + parseInt(document.getElementById("tax").innerText)); 
+                      document.getElementById("bill").value = document.getElementById("final_total").innerText;
+                      // console.log(document.getElementById("bill").value);
                       // document.getElementById('sub_sub_total').innnerText = sum;
                       document.getElementById("sub_sub_total").innerText = sum1;       
 
@@ -343,7 +346,7 @@ session_start();
                         // alert(val);
                         // return val;
                     }
-                    function total(id){
+                    function totali(id){
                       // console.log(id);
                       var ids = id.split('_');
                       // console.log(ids);
@@ -372,7 +375,8 @@ session_start();
                       let tax = (3*sum)/100;
                       document.getElementById("tax").innerText = tax; 
                       document.getElementById("final_total").innerText = (sum + parseInt(document.getElementById("tax").innerText)); 
-
+                      document.getElementById("bill").value = document.getElementById("final_total").innerText;
+                      // console.log(document.getElementById("bill").value);
                         
                       
                     }

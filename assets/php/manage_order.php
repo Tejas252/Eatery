@@ -22,6 +22,9 @@ if($_SERVER["REQUEST_METHOD"]=="POST"){
                     $pro_no = $value['no'];
                     $name = "qty_".$pro_no;
                     $qty = $_POST[$name];
+                    $total = $_POST['total'];
+
+
                     // $qr = "select * from products  where product_no = '$pro_no'";
                     // $result = mysqli_query($conn,$qr);
                     // $prd = mysqli_fetch_assoc($result);
@@ -30,8 +33,12 @@ if($_SERVER["REQUEST_METHOD"]=="POST"){
                     // $product_price = $prd['product_price']; 
                     // $q = 0;
 
-                    $qrr = "insert into orders (customer_id,product_id,qty,order_desc,table_no,status) values ($id,$pro_no,$qty,'$desc','$table_no','$status')";
+                    $qrr = "insert into orders (customer_id,product_id,qty,order_desc,table_no,status,total) values ($id,$pro_no,$qty,'$desc','$table_no','$status',$total)";
                     $res = mysqli_query($conn,$qrr);
+
+                    $qrr1 = "update products set product_qty = product_qty-$qty where product_no = $pro_no";
+                    $res1 = mysqli_query($conn,$qrr1);
+
                     if($res){
                     $_SESSION['ordered'] = true;
                     header("location:../../index.php");

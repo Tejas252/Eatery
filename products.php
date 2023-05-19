@@ -34,7 +34,11 @@ session_start();
    .te{
     background: transparent;
     border: none;
-   }    
+   } 
+   .imag{
+    width:100px;
+    height:100px;
+   }   
 </style>
   <!-- <link rel="stylesheet" href="cart.css"> -->
 </head>
@@ -110,25 +114,29 @@ session_start();
                   
                   <div class="container-fluid text-c" id="cart-head">
                     <div class="row d-flex cart-head">
-                        <div class="col-2">
-                            <h5>customer Id</h5>
+                        <div class="col-1">
+                            <h5>Product no</h5>
+                        </div>
+                        <div class="col-3">
+                            <h5>Product</h5>
                         </div>
                         <div class="col-3">
                             <h5>Product name</h5>
                         </div>
-                        <div class="col-1">
-                            <h5>Quantity</h5>
-                        </div>
-                        <div class="col-1">
-                            <h5>Table No</h5>
+                        <div class="col-2">
+                            <h5>Product Price</h5>
                         </div>
                         <div class="col-3">
+                            <h5>Stock</h5>
+                        </div>
+                        
+                        <!-- <div class="col-3">
                             <h5>Description</h5>
                         </div>
                         <div class="col-2">
                             <h5>status</h5>
                         </div>
-                        
+                         -->
                     </div>
                   </div> 
                    
@@ -137,72 +145,48 @@ session_start();
                 <div class="container-fluid text-c" id="cart-head">
                     
                 <?php 
-                    $qr = "select * from orders where status = 'accepted' || status = 'deliverd'";
-                    $res = mysqli_query($conn,$qr);
-                    $nid = 1;
-                    while($orders = mysqli_fetch_assoc($res)) {
+                    
+                    $qr1 = "select * from products";
+                    $nam = mysqli_query($conn,$qr1);
+                    while($orders = mysqli_fetch_assoc($nam)) {
+
                         $id = $orders['product_id'];
-                        $qr1 = "select product_name from products where product_id = $id";
-                        $nam = mysqli_query($conn,$qr1);
-                        $name = mysqli_fetch_array($nam);
+                        $name = $orders['product_name'];
+                        $img = $orders['product_img'];
+                        $qty = $orders['product_qty'];
+                        $price = $orders['product_price'];
                         ?>
                         <div class="row d-flex cart-head">
                         
-                        <div class="col-2">
-                            <h5><?php echo $orders['customer_id']; ?></h5>
-                            
-                        </div>
-                        <div class="col-3">
-                            <h5><?php echo $name['product_name']; ?></h5>
-                        </div>
-                        <div class="col-1">
-                            <h5><?php echo $orders['qty']; ?></h5>
-                        </div>
-                        <div class="col-1">
-                            <h5><?php echo $orders['table_no']; ?></h5>
-                        </div>
-                        <div class="col-3">
-                            <h5><?php echo $orders['order_desc']; ?></h5><br>
-                            <?php if($orders['customer_id'] == $nid){?>
-                        <div class="col-2">
+                            <div class="col-1">
+                                <h5><?php echo $id?></h5>
+                                
+                            </div>
+                            <div class="col-3 ">
+                                <h5> <img class="imag" src="assets/uploads/<?php echo $img; ?>" alt="" srcset="">  </h5>
+                            </div>
+                            <div class="col-3">
+                                <h5><?php echo $name; ?></h5>
+                            </div>
+                            <div class="col-2">
+                                <h5><?php echo $price; ?></h5>
+                            </div>
+                            <div class="col-3">
+                                <h5><?php echo $qty; ?></h5>
+                            </div>
+                        
                         
                         </div>
-                <?php  }else{ ?>
-                  <h5><?php echo "Total:".$orders['total']; ?></h5>
-                <?php } ?>
+                        <?php } ?> </div> 
                             
 
                         </div>
                         
-                <?php if($orders['customer_id'] == $nid){?>
-                        <div class="col-2">
-                        
-                        </div>
-                <?php  }else{ ?>
-                        <div class="col-2">
-                            <form action="assets/php/manage_order.php" method="post">
-                                <select name="status" id="">
-                                    <!-- <option name="status" value="accepted">Accepted</option> -->
-                                    <option name="status" value="deliverd">Deliverd</option>
-                                    <option name="status" value="done">Done</option>
-                                </select>
-                                <input type="hidden" name="id" value="<?php echo $orders['customer_id']; ?>">
-                                <input type="hidden" name="order_id" value="<?php echo $orders['order_id']; ?>">
-                                <input type="hidden" name="table_no" value="<?php echo $orders['table_no']; ?>">
-                                <!-- <input type="submit" value="✔" name="change"> -->
-                                <button type="submit" name="change">✔</button>
-                                <!-- <h5><?php // echo $orders['status']; ?></h5> -->
-                            </form>
-                        </div>
-                <?php } ?>
-                <?php $nid =  $orders['customer_id']; ?>
-                        </div>
-                <?php } ?>
-                            
+                
                     
                   </div> 
                   
-                  
+                    
                   
 
                   
@@ -221,10 +205,13 @@ session_start();
                         </div>
                     </div>
                   </div>
-        </div>
+                
+                                              
+
+                </div>
        
-       
-      </div>
+               
+               
       <?php// if(isset($_SESSION['ordered'])){?>
       
                               
@@ -242,7 +229,7 @@ session_start();
                                   </div>
                                 </div> -->
 
-      <?php // } ?>                      
+                      
                               <!-- <div class="container-fluid mt-3">
                                   <div class="row">
                                     <div class="col-12 text-center">
