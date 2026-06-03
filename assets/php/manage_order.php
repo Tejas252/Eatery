@@ -15,8 +15,7 @@ if($_SERVER["REQUEST_METHOD"]=="POST"){
             if(isset($_SESSION['cart'])){
                 $arcol = count($_SESSION['cart']);
                 if($arcol > 0){
-                  // echo "<h5 class='text-center'>Add</h5>";
-                  // echo $arcol;
+                  $orderOk = true;
                   foreach($_SESSION['cart'] as $key => $value){
 
                     $pro_no = $value['no'];
@@ -24,29 +23,27 @@ if($_SERVER["REQUEST_METHOD"]=="POST"){
                     $qty = $_POST[$name];
                     $total = $_POST['total'];
 
-
-                    // $qr = "select * from products  where product_no = '$pro_no'";
-                    // $result = mysqli_query($conn,$qr);
-                    // $prd = mysqli_fetch_assoc($result);
-                    // $product_img = $prd['product_img'];
-                    // $product_qty = $value['qty'];
-                    // $product_price = $prd['product_price']; 
-                    // $q = 0;
-
                     $qrr = "insert into orders (customer_id,product_id,qty,order_desc,table_no,status,total) values ($id,$pro_no,$qty,'$desc','$table_no','$status',$total)";
                     $res = mysqli_query($conn,$qrr);
 
                     $qrr1 = "update products set product_qty = product_qty-$qty where product_no = $pro_no";
-                    $res1 = mysqli_query($conn,$qrr1);
+                    mysqli_query($conn,$qrr1);
 
-                    if($res){
-                    $_SESSION['ordered'] = true;
-                    header("location:../../index.php");
-                    //   echo "<script>console.log('$table_no');</script>";
-                    }else{
-                    header("location:login.php");
+                    if(!$res){
+                      $orderOk = false;
+                      break;
                     }
-                }}}
+                  }
+
+                  if($orderOk){
+                    $_SESSION['ordered'] = true;
+                    $_SESSION['cart'] = [];
+                    header("location:../../cart.php");
+                    exit;
+                  }
+                  header("location:login.php");
+                  exit;
+                }}
 
             
         }else{

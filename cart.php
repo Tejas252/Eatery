@@ -1,431 +1,589 @@
 <?php
+
 session_start();
-// include('data_insert_take.php');
-// include('assets/php.config.php');
+
+include('data_insert_take.php');
+
+require_once('assets/php/cart_helpers.php');
+
+
+
+$cartItems = [];
+
+$subtotal = 0;
+
+$taxRate = 0.03;
+
+
+
+if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
+
+    foreach ($_SESSION['cart'] as $value) {
+
+        $proNo = (int) ($value['no'] ?? 0);
+
+        $qty = (int) ($value['qty'] ?? 1);
+
+
+
+        if ($proNo <= 0) {
+
+            continue;
+
+        }
+
+
+
+        $stmt = $conn->prepare('SELECT product_no, product_name, product_price, product_qty, product_img, product_type FROM products WHERE product_no = ? LIMIT 1');
+
+        $stmt->bind_param('i', $proNo);
+
+        $stmt->execute();
+
+        $product = $stmt->get_result()->fetch_assoc();
+
+        $stmt->close();
+
+
+
+        if (!$product) {
+
+            continue;
+
+        }
+
+
+
+        $price = (int) $product['product_price'];
+
+        $lineTotal = $price * $qty;
+
+        $subtotal += $lineTotal;
+
+        $maxQty = min((int) $product['product_qty'], 10);
+
+
+
+        $cartItems[] = [
+
+            'no' => $proNo,
+
+            'qty' => $qty,
+
+            'name' => $product['product_name'],
+
+            'price' => $price,
+
+            'img' => $product['product_img'],
+
+            'type' => $product['product_type'],
+
+            'line_total' => $lineTotal,
+
+            'max_qty' => max(1, $maxQty),
+
+        ];
+
+    }
+
+}
+
+
+
+$tax = (int) round($subtotal * $taxRate);
+
+$shipping = 0;
+
+$discount = 0;
+
+$grandTotal = $subtotal + $tax + $shipping - $discount;
+
+$hasItems = count($cartItems) > 0;
+
+if ($hasItems && isset($_SESSION['ordered'])) {
+    unset($_SESSION['ordered']);
+}
+
+$isOrdered = isset($_SESSION['ordered']);
+
+$orderStatus = '';
+
+$tableNo = isset($_SESSION['table']) ? (int) $_SESSION['table'] : null;
+
+
+
+if ($isOrdered && isset($_SESSION['id'])) {
+
+    $customerId = (int) $_SESSION['id'];
+
+    $statusQuery = "SELECT status FROM orders WHERE customer_id = $customerId AND (status = 'ordered' OR status = 'accepted' OR status = 'Deliverd') ORDER BY order_id DESC LIMIT 1";
+
+    $statusResult = mysqli_query($conn, $statusQuery);
+
+    if ($statusResult && ($statusRow = mysqli_fetch_assoc($statusResult))) {
+
+        $orderStatus = $statusRow['status'];
+
+    }
+
+}
+
+
+
+$showOrderSuccess = $isOrdered && !$hasItems;
+
+$showEmptyCart = !$hasItems && !$isOrdered;
+
+$showCart = $hasItems;
+
+
+
+function cart_status_label(string $status): string
+
+{
+
+    $labels = [
+
+        'ordered' => 'Order Received',
+
+        'accepted' => 'Being Prepared',
+
+        'Deliverd' => 'Delivered',
+
+        'done' => 'Completed',
+
+    ];
+
+    return $labels[strtolower($status)] ?? ucfirst($status);
+
+}
 
 ?>
 
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
+
   <meta charset="utf-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Start your development with FoodHut landing page.">
-  <meta name="author" content="Devcrud">
-  <title>Eatery : Flavor For Royalty</title>
+
+  <meta name="description" content="Your Eatery cart">
+
+  <title>Eatery | Your Cart</title>
+
   <link rel="icon" href="assets/imgs/logo3.png">
 
-  <!-- font icons -->
   <link rel="stylesheet" href="assets/vendors/themify-icons/css/themify-icons.css">
 
-  <link rel="stylesheet" href="assets/vendors/animate/animate.css">
-
-  <!-- Bootstrap + FoodHut main styles -->
   <link rel="stylesheet" href="assets/css/foodhut.css">
-  <!-- <link rel="stylesheet" href="assets/css/menu.css"> -->
-  <!-- <link rel="stylesheet" href="assets/css/qty.css">
-  <link rel="stylesheet" href="assets/css/login.css">
-  <link rel="stylesheet" href="assets/css/signup.css"> -->
+
   <link rel="stylesheet" href="assets/css/cart.css">
 
-  <style>
-   .te{
-    background: transparent;
-    border: none;
-   }
-</style>
-  <!-- <link rel="stylesheet" href="cart.css"> -->
+  <link rel="stylesheet" href="assets/css/add-to-cart.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+
 </head>
 
-<body data-spy="scroll" data-target=".navbar" data-offset="40" id="home">
-      <!-- Navbar -->
-      <nav class="custom-navbar navbar navbar-expand-lg navbar-dark fixed-top" data-spy="affix" data-offset-top="10">
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav">
-        <li class="nav-item">      
-          <input type="button" value="Home"  class="nav-link te"  href="" onclick="home(this.name)" name="index.php#Home">
-        </li>
-        <li class="nav-item">
-        <input type="button" value="Book-table"  class="nav-link te"  href="" onclick="home(this.name)" name="index.php#book-table">
-        </li>
-        <li class="nav-item">
-        <input type="button" value="Menu"  class="nav-link te"  href="" onclick="home(this.name)" name="index.php#Menu">
+<body class="cart-body">
 
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#About">About</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="<?php if(isset($_SESSION['login'])){echo'assets/php/logout.php';}else{echo 'login.php';} ?>"><?php if(isset($_SESSION['login'])){echo'Log-out';}else{echo 'Login';} ?></a>
-        </li>
-      </ul>
-      <a class="navbar-brand m-auto" href="#">
-      <img src="assets/imgs/logo3.png" class="brand-img" alt="" onclick="home(this.name)" name="index.php#Home">
-        <span class="brand-txt">Eatery</span>
+
+
+  <nav class="cart-nav navbar navbar-expand-lg navbar-dark fixed-top">
+
+    <div class="cart-nav__inner">
+
+      <a class="cart-nav__brand" href="index.php">
+
+        <img src="assets/imgs/logo3.png" alt="Eatery" class="cart-nav__logo">
+
+        <span class="cart-nav__name">Eatery</span>
+
       </a>
-      <ul class="navbar-nav">
-       
-        <li class="nav-item cart-btn">
-          <a href="cart.php" class="btn btn-primary ml-xl-4 cart-btn"><img src="assets/imgs/cart.png" id="cart" alt=""
-              srcset=""></a>
-          <a href="<?php if(isset($_SESSION['login'])){echo'assets/php/profile.php';}else{echo'assets/php/error.php';} ?>" class="btn btn-primary ml-xl-4 cart-btn"><img src="assets/imgs/user.png" id="cart" alt=""></a>
-        </li>
-      </ul>
+
+
+
+      <button class="navbar-toggler cart-nav__toggler" type="button" data-toggle="collapse" data-target="#cartNavMenu" aria-label="Toggle navigation">
+
+        <span class="navbar-toggler-icon"></span>
+
+      </button>
+
+
+
+      <div class="collapse navbar-collapse" id="cartNavMenu">
+
+        <ul class="navbar-nav cart-nav__links">
+
+          <li class="nav-item"><a class="nav-link" href="index.php#home">Home</a></li>
+
+          <li class="nav-item"><a class="nav-link" href="index.php#book-table">Book Table</a></li>
+
+          <li class="nav-item"><a class="nav-link" href="index.php#Menu">Menu</a></li>
+
+          <li class="nav-item"><a class="nav-link" href="index.php#about">About</a></li>
+
+        </ul>
+
+
+
+        <ul class="navbar-nav cart-nav__actions">
+
+          <li class="nav-item">
+
+            <a href="cart.php" class="cart-nav__icon-btn cart-link" aria-label="View cart">
+
+              <img src="assets/imgs/cart.png" class="nav-cart-icon" alt="">
+
+              <span class="cart-badge<?php echo get_cart_item_count() > 0 ? '' : ' is-empty'; ?>" id="cart-count"><?php echo get_cart_item_count(); ?></span>
+
+            </a>
+
+          </li>
+
+          <li class="nav-item">
+
+            <a href="<?php echo isset($_SESSION['login']) ? 'assets/php/profile.php' : 'login.php'; ?>" class="cart-nav__icon-btn" aria-label="Account">
+
+              <img src="assets/imgs/user.png" class="nav-cart-icon" alt="">
+
+            </a>
+
+          </li>
+
+          <li class="nav-item">
+
+            <a href="<?php echo isset($_SESSION['login']) ? 'assets/php/logout.php' : 'login.php'; ?>" class="cart-nav__auth">
+
+              <?php echo isset($_SESSION['login']) ? 'Log out' : 'Login'; ?>
+
+            </a>
+
+          </li>
+
+        </ul>
+
+      </div>
+
     </div>
-    </nav>
+
+  </nav>
 
 
-  <!-- header -->
 
-  <!-- <header id="home" class="header">
-    <div class="overlay text-white text-center" id=>
-      <h1 class="display-2 font-weight-bold my-3">Eatery</h1>
-      <h2 class="display-4 mb-5"> Flavors for Royalty </h2>
-      <a class="btn btn-lg btn-primary" href="#Menu">View Our Menu</a>
-    </div>
-  </header> -->
+  <main class="cart-page">
 
-  <!-- <header id="home" class="header"> -->
-    <!-- <div class="overlay text-white text-center" id=> -->
-
-    <!-- header -->
-    <!-- <header id="home" class="header">
-    <div class="overlay text-white text-center" id=> -->
-      <br><br><br><br><br><br><br><br>
-  <form action="assets/php/manage_order.php" method="post">
-    <header class="container-fluid">
-      <div class="row" id="cart-container">
-        <div class="col-md-3 cart-left"></div>
-        <div class="col-sm-6 col-md-6 col-xs-12 my-2 cart-main cart-middle">
-
-                    <!-- crt header -->
-                  
-                  <div class="container-fluid text-c" id="cart-head">
-                    <div class="row d-flex cart-head">
-                      <div class="col-4">
-                        <h5>Product</h5>
-                      </div>
-                      <div class="col-4">
-                        <h5>Quantity</h5>
-                      </div>
-                      <div class="col-4">
-                        <h5>Price</h5>
-                      </div>
-                    </div>
-                  </div> 
-                   
-                   <!-- cart-product  -->
-
-                   <?php 
-                          $servername = "localhost";
-                          $username = "root";
-                          $password = "";
-                          $database = "eatery";
-                        
-                          // Create connection
-                          $conn = new mysqli($servername, $username, $password, $database);
-                        
-                          // Check connection
-                          if ($conn->connect_error) {
-                            die("Connection failed: " . $conn->connect_error);
-                          }
-                    if(isset($_SESSION['cart'])){
-                      $arcol = count($_SESSION['cart']);
-                      if($arcol > 0){
-                        // echo "<h5 class='text-center'>Add</h5>";
-                        // echo $arcol;
-                        foreach($_SESSION['cart'] as $key => $value){
-
-                          $pro_no = $value['no'];
-                        
-                          $qr = "select * from products  where product_no = '$pro_no'";
-                          $result = mysqli_query($conn,$qr);
-                          $prd = mysqli_fetch_assoc($result);
-                          $product_name = $prd['product_name'];
-                          $product_img = $prd['product_img'];
-                          $product_qty = $value['qty'];
-                          $product_price = $prd['product_price']; 
-                          $q = 0;
+    <div class="cart-page__inner">
 
 
-                        // if(isset($_POST["submit"])){
-                        //   $_SESSION['product_no'] = $_POST['product_no'];
-                        //   $_SESSION['qty'] = $_POST['qty'];
-                        //   // echo $_POST['product_no'];
-                        //   // echo $_SESSION['qty'];
-                        //   // header("location:../../index.php#Menu");
-                        // } 
-                        
 
-                  ?>
-                  
-                  <div class="container-fluid">
-                    <div class="row d-flex cart-head">
-                      <div class="col-4 cart-prd">
-                        <img class="prd-img" src="assets/uploads/<?php echo $product_img?>" alt="hey">
-                        <div class="prd-desc">
-                          <h6><?php echo $product_name; ?></h6>
-                          <span>Price:</span>
-                          <p id="pr"> <?php echo $product_price ?> /-</p>
-                          <div>
-                          <form action="assets/php/qty_session.php" method="post">
-                            <input type="hidden" name="no" value="<?php echo $value['no']; ?>">
-                            <input type="submit" name="remove" value="Remove"></input>
-                          </form>
-                          </div>
-                          
-                          
-                        </div>
-                        
-                      </div>
-                      <div class="col-4">
-                        <!-- <h5></h5> -->
-                        <div class="textbox text-l">
-                          <input class="text-box" name="qty_<?php echo $pro_no ?>" id="qty<?php echo $pro_no;?>_<?php echo $product_price;?>" type="number" onchange="totali(this.id)" value="<?php echo $product_qty;?>" min="1" max="10" requierd>
-                        </div>
-                        
-                      </div>
-                      <div class="col-4 text-l">
-                        <h5 id="qty<?php echo $pro_no;?>" class="sub_tot"><?php echo ($product_price*$product_qty);?></h5>
-                      </div>
-                    </div>
-                  </div> 
-                  
+      <header class="cart-page__hero">
 
-                   <?php } }else{echo "<h5 class='text-center'>Add products</h5>";}}?>
-              
-                  
-                  <!-- cart-total  -->
-                  <div class="row">
-                    <div class="col-3"></div>
-                    <div class="col-9">
-                      <hr>
-                        <div class="container-fluid">
-                          <div class="row">
-                            <div class="col-6">
-                              <div class="container-fluid text-l">
-                                <div class="row">
-                                  <div class="col">Sub Total:</div>
-                                </div>
-                                <div class="row">
-                                  <div class="col">Tax:</div>
-                                </div>
-                                <div class="row">
-                                  <div class="col">Total:</div>
-                                </div>
-                              </div>
-                            </div>
-                            <div class="col-6">
-                              <div class="container-fluid text-l">
-                                <div class="row">
-                                  <div class="col" id="sub_sub_total">000</div>
-                                </div>
-                                <div class="row">
-                                  <div class="col" id="tax">000</div>
-                                </div>
-                                <div class="row">
-                                     <div class="col" id="final_total">0000</div>
-                                </div>
-                              </div>
-                             
-                            </div>
-                          </div>
-                        </div>
-                    </div>
-                  </div>
+        <div class="cart-page__hero-text">
+
+          <?php if ($showOrderSuccess) : ?>
+
+            <span class="cart-page__eyebrow">Order Confirmed</span>
+
+            <h1 class="cart-page__title">Thank you!</h1>
+
+            <p class="cart-page__subtitle">Your order has been placed and our kitchen is getting started.</p>
+
+          <?php elseif ($showEmptyCart) : ?>
+
+            <span class="cart-page__eyebrow">Your Bag</span>
+
+            <h1 class="cart-page__title">Shopping Cart</h1>
+
+            <p class="cart-page__subtitle">Your cart is empty — add something delicious from our menu.</p>
+
+          <?php else : ?>
+
+            <span class="cart-page__eyebrow">Checkout</span>
+
+            <h1 class="cart-page__title">Shopping Cart</h1>
+
+            <p class="cart-page__subtitle"><?php echo count($cartItems); ?> item<?php echo count($cartItems) === 1 ? '' : 's'; ?> ready for checkout</p>
+
+          <?php endif; ?>
+
         </div>
-        <div class="col-md-3 cart-right"></div>
-       
-      </div>
-      <?php// $_SESSION['ordered'] = false; ?>
-      <?php if(!isset($_SESSION['ordered'])){ ?>
-                
 
-         
-        
-                              <div class="container-fluid " >
-                                  <div class="row">
-                                    <div class="col-12 text-center d-flex align-items-center justify-content-center">
-                                      <label for="order-desc" class="" >Order Suggestion</label>
-                                      <textarea name="order_desc" id="order_desc" cols="30" rows="1" class="" onchange="order_desc()" style="margin-left : 4px;"></textarea>
-                                   </div>
-                                  </div>
-                              </div>
-                              
-                              <div class="container-fluid mt-3">
-                                  <div class="row">
-                                    <div class="col-12 text-center">
-                                     
-                                      <input type="hidden" name="cust_id" value="<?php if(isset($_SESSION['id'])){echo $_SESSION['id'];} ?>">
-                                      <input type="hidden" id="" name="status" value="ordered">
-                                      <input type="hidden" id="bill" value="" name="total">
-                                      <button type="submit" name="order" class="btn btn-primary w-25 mb-3">Make Order</button>
-                                      <a href="assets/php/history.php">📝</a>
-                                   </div>
-                                  </div>
-                              </div>
-      
-      
-       <?php }else {?>
-                                <div class="container-fluid mt-3">
-                                  <div class="row">
-                                    <div class="col-12 text-center">
+      </header>
 
 
-                                      <p  name="order" class="btn btn-primary w-25 mb-3">Ordered</p>
-                                      <?php
-                                      $id = $_SESSION['id'];
-                                      $or = 'ordered';
-                                      $sql = "select * from orders where customer_id = $id && status = 'ordered' || status = 'accepted' || status = 'Deliverd'";
-                                      $res = mysqli_query($conn,$sql);
-                                      // print_r($res);
-                                      $orders = mysqli_fetch_assoc($res);     
-                                      if(isset($orders['status'])){                       
-                                      ?>
-                                      <p  name="order" class="btn btn-primary w-25 mb-3"><?php echo $orders['status']; }?></p>
-                                      <a href="assets/php/history.php">📝</a>
 
-                                   </div>
-                                  </div>
-                                </div>
-     
+      <?php if ($showOrderSuccess) : ?>
 
-      <?php  } ?>      
-                    
-                              <!-- <div class="container-fluid mt-3">
-                                  <div class="row">
-                                    <div class="col-12 text-center">
-                                      <h5><a href="index.php">Go Back</a></h5>
-                                   </div>
-                                  </div>
-                              </div> -->
-    </header>
-    </form>
-    <script>
-                    // var prd_qty = ;
-                    // document.getElementById('qty').value = prd_qty;
-                    // var sub_total = ( prd_qty * );
-                    // document.getElementById('sub_total').innerText = sub_total;
-                    let prd_tot1 = document.getElementsByClassName('sub_tot');
-                      let p1=0;
-                    let sub1=0;
-                    let sum1=0;
+        <section class="cart-order-success">
+
+          <div class="cart-order-success__card">
+
+            <div class="cart-order-success__icon-wrap">
+
+              <span class="cart-order-success__icon">&#10003;</span>
+
+            </div>
+
+            <h2 class="cart-order-success__title">Order placed successfully</h2>
+
+            <p class="cart-order-success__text">Sit back and relax. We will prepare your food and serve it to your table.</p>
 
 
-                    while(p1 < (prd_tot1.length )){
-                        // console.log(document.getElementsByClassName('sub_tot')[p].innerText);
-                        sub1 = parseInt(document.getElementsByClassName('sub_tot')[p1].innerText);
 
-                        console.log(typeof(sub1));
-                        sum1 =sum1 + sub1 ;
-                        // console.log(sum1);
-                        p1++;
+            <div class="cart-order-success__meta">
 
-                      }
+              <?php if ($orderStatus !== '') : ?>
 
-                      document.getElementById("sub_sub_total").innerText = sum1; 
-                      let tax1 = (3*sum1)/100;
-                      document.getElementById("tax").innerText = tax1; 
-                      document.getElementById("final_total").innerText = (sum1 + parseInt(document.getElementById("tax").innerText)); 
-                      document.getElementById("bill").value = document.getElementById("final_total").innerText;
-                      // console.log(document.getElementById("bill").value);
-                      // document.getElementById('sub_sub_total').innnerText = sum;
-                      document.getElementById("sub_sub_total").innerText = sum1;       
+                <div class="cart-order-success__badge"><?php echo htmlspecialchars(cart_status_label($orderStatus)); ?></div>
 
-                      let sub = 0;
+              <?php endif; ?>
 
-                    function order_desc() {
-                        let val = document.getElementById('order_desc').value;
-                        document.getElementById('desc').value = val;
-                        
-                        
-                        // alert(val);
-                        // return val;
-                    }
-                    function totali(id){
-                      // console.log(id);
-                      var ids = id.split('_');
-                      // console.log(ids);
-                      var qty = document.getElementById(id).value;
-                      var price =  ids[1];
-                      var sub_total = ( qty * price);
-                      document.getElementById(ids[0]).innerText = sub_total; 
-                      // console.log('hey');
+              <?php if ($tableNo) : ?>
 
-                      let prd_tot = document.getElementsByClassName('sub_tot');
-                      let sum = 0;
-                      let  p = 0;
-                      // console.log(prd_tot.length);
-                      while(p < (prd_tot.length )){
-                        // console.log(document.getElementsByClassName('sub_tot')[p].innerText);
-                        sub = parseInt(document.getElementsByClassName('sub_tot')[p].innerText);
+                <div class="cart-order-success__detail">Table <?php echo $tableNo; ?></div>
 
-                        console.log(typeof(sub));
-                        sum =sum + sub ;
-                        console.log(sum);
-                        p++;
+              <?php endif; ?>
 
-                      }
-                      // document.getElementById('sub_sub_total').innnerText = sum;
-                      document.getElementById("sub_sub_total").innerText = sum; 
-                      let tax = (3*sum)/100;
-                      document.getElementById("tax").innerText = tax; 
-                      document.getElementById("final_total").innerText = (sum + parseInt(document.getElementById("tax").innerText)); 
-                      document.getElementById("bill").value = document.getElementById("final_total").innerText;
-                      // console.log(document.getElementById("bill").value);
-                        
-                      
-                    }
-                  </script>
-      
-    <!-- </div>
-  </header> -->
-  <div class="container-fluid bg-dark text-light has-height-md middle-items border-top text-center wow fadeIn">
-    <div class="row">
-      <div class="col-sm-4">
-        <h3>EMAIL US</h3>
-        <P class="text-muted">info@website.com</P>
-      </div>
-      <div class="col-sm-4">
-        <h3>CALL US</h3>
-        <P class="text-muted">(123) 456-7890</P>
-      </div>
-      <div class="col-sm-4">
-        <h3>FIND US</h3>
-        <P class="text-muted">12345 Fake ST NoWhere AB Country</P>
-      </div>
+            </div>
+
+
+
+            <div class="cart-order-success__actions">
+
+              <a href="assets/php/history.php" class="cart-order-success__btn cart-order-success__btn--primary">View Order History</a>
+
+              <a href="index.php#Menu" class="cart-order-success__btn cart-order-success__btn--ghost">Order More</a>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+
+      <?php elseif ($showEmptyCart) : ?>
+
+        <section class="cart-empty">
+
+          <div class="cart-empty__visual">
+
+            <div class="cart-empty__ring"></div>
+
+            <div class="cart-empty__icon">&#128722;</div>
+
+          </div>
+
+          <h2 class="cart-empty__title">Nothing here yet</h2>
+
+          <p class="cart-empty__text">Browse our pizzas, burgers, and chef specials. Your favorites are just a few clicks away.</p>
+
+          <a href="index.php#Menu" class="cart-empty__btn">Explore Menu</a>
+
+        </section>
+
+
+
+      <?php else : ?>
+
+        <form action="assets/php/manage_order.php" method="post" id="checkoutForm">
+
+          <div class="cart-layout">
+
+            <section class="cart-items-panel" aria-label="Cart items">
+
+              <div class="cart-items-panel__head">
+
+                <span>Product</span>
+
+                <span>Quantity</span>
+
+                <span>Total</span>
+
+              </div>
+
+              <div class="cart-items-list">
+
+                <?php foreach ($cartItems as $item) : ?>
+
+                  <article class="cart-item" data-product-no="<?php echo (int) $item['no']; ?>" data-price="<?php echo (int) $item['price']; ?>">
+
+                    <div class="cart-item__product">
+
+                      <div class="cart-item__media">
+
+                        <img class="cart-item__img" src="assets/uploads/<?php echo htmlspecialchars($item['img']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>">
+
+                      </div>
+
+                      <div class="cart-item__info">
+
+                        <span class="cart-item__type"><?php echo htmlspecialchars(ucfirst(strtolower($item['type']))); ?></span>
+
+                        <h2 class="cart-item__name"><?php echo htmlspecialchars($item['name']); ?></h2>
+
+                        <p class="cart-item__unit-price"><?php echo '&#8377;' . number_format($item['price']); ?> each</p>
+
+                        <button type="button" class="cart-item__remove" data-cart-remove>Remove item</button>
+
+                      </div>
+
+                    </div>
+
+                    <div class="cart-item__qty-wrap">
+
+                      <div class="cart-item__qty">
+
+                        <button type="button" class="cart-item__qty-btn" data-qty-decrease aria-label="Decrease quantity">−</button>
+
+                        <input class="cart-item__qty-input" type="number" name="qty_<?php echo (int) $item['no']; ?>" value="<?php echo (int) $item['qty']; ?>" min="1" max="<?php echo (int) $item['max_qty']; ?>" inputmode="numeric">
+
+                        <button type="button" class="cart-item__qty-btn" data-qty-increase aria-label="Increase quantity">+</button>
+
+                      </div>
+
+                    </div>
+
+                    <div class="cart-item__line-total"><?php echo '&#8377;' . number_format($item['line_total']); ?></div>
+
+                  </article>
+
+                <?php endforeach; ?>
+
+              </div>
+
+            </section>
+
+
+
+            <aside class="cart-summary" aria-label="Order summary">
+
+              <h2 class="cart-summary__title">Order Summary</h2>
+
+              <div class="cart-summary__rows">
+
+                <div class="cart-summary__row"><span>Subtotal</span><span id="cartSubtotal"><?php echo '&#8377;' . number_format($subtotal); ?></span></div>
+
+                <div class="cart-summary__row"><span>Tax (3%)</span><span id="cartTax"><?php echo '&#8377;' . number_format($tax); ?></span></div>
+
+                <div class="cart-summary__row cart-summary__row--shipping"><span>Delivery</span><span id="cartShipping">Free</span></div>
+
+                <div class="cart-summary__row cart-summary__row--discount"><span>Discount</span><span id="cartDiscount">&mdash;</span></div>
+
+              </div>
+
+              <div class="cart-summary__total">
+
+                <span class="cart-summary__total-label">Grand Total</span>
+
+                <span class="cart-summary__total-value" id="cartGrandTotal"><?php echo '&#8377;' . number_format($grandTotal); ?></span>
+
+              </div>
+
+
+
+              <?php if (!$isOrdered) : ?>
+
+                <div class="cart-summary__note">
+
+                  <label for="order_desc">Special instructions</label>
+
+                  <textarea name="order_desc" id="order_desc" class="cart-summary__textarea" placeholder="Extra cheese, no onions, etc." rows="3"></textarea>
+
+                </div>
+
+              <?php endif; ?>
+
+              <input type="hidden" name="cust_id" value="<?php echo isset($_SESSION['id']) ? (int) $_SESSION['id'] : ''; ?>">
+
+              <input type="hidden" name="status" value="ordered">
+
+              <input type="hidden" id="bill" name="total" value="<?php echo (int) $grandTotal; ?>">
+
+              <button type="submit" name="order" class="cart-checkout-btn">Proceed to Checkout</button>
+
+
+
+              <div class="cart-summary__links">
+
+                <a href="index.php#Menu" class="cart-summary__link">Continue shopping</a>
+
+              </div>
+
+            </aside>
+
+          </div>
+
+        </form>
+
+      <?php endif; ?>
+
+
+
     </div>
-  </div>
-    
-    <!-- </div> -->
-  <!-- </header> -->
-  <!-- end of page footer -->
 
-	<!-- core  -->
-  <script src="assets/js/function.js"></script>
+  </main>
+
+
+
+  <div class="cart-toast-stack" id="cartToastStack" aria-live="polite" aria-atomic="true"></div>
+
+
+
+  <footer class="cart-footer">
+
+    <div class="cart-footer__inner">
+
+      <div class="cart-footer__col">
+
+        <h3>Email</h3>
+
+        <p>Contact@eatery.com</p>
+
+      </div>
+
+      <div class="cart-footer__col">
+
+        <h3>Call</h3>
+
+        <p>+91 9898252898</p>
+
+      </div>
+
+      <div class="cart-footer__col">
+
+        <h3>Visit</h3>
+
+        <p>111, Platinam hub, Noida</p>
+
+      </div>
+
+    </div>
+
+  </footer>
+
+
+
   <script src="assets/vendors/jquery/jquery-3.4.1.js"></script>
-    <script src="assets/vendors/bootstrap/bootstrap.bundle.js"></script>
 
-    <!-- bootstrap affix -->
-    <script src="assets/vendors/bootstrap/bootstrap.affix.js"></script>
+  <script src="assets/vendors/bootstrap/bootstrap.bundle.js"></script>
 
-    <!-- wow.js -->
-    <script src="assets/vendors/wow/wow.js"></script>
-    
-    <!-- google maps -->
-    <!-- <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtme10pzgKSPeJVJrG1O3tjR6lk98o4w8&callback=initMap"></script> -->
+  <?php if ($showCart) : ?>
 
-    <!-- FoodHut js -->
-    <script src="assets/js/foodhut.js"></script>
-    </body>
+    <script src="assets/js/cart-page.js"></script>
+
+  <?php endif; ?>
+
+</body>
+
 </html>
-
-
-
-
 
 

@@ -1,196 +1,195 @@
-<html>
-<head>
-<meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Start your development with FoodHut landing page.">
-  <meta name="author" content="Devcrud">
-  <title>Eatery : Flavor For Royalty</title>
-  <link rel="icon" href="assets/imgs/logo3.png">
-
-  <!-- font icons -->
-  <link rel="stylesheet" href="../vendors/themify-icons/css/themify-icons.css">
-
-  <link rel="stylesheet" href="../vendors/animate/animate.css">
-
-  <!-- Bootstrap + FoodHut main styles -->
-  <link rel="stylesheet" href="../css/foodhut.css">
-  <!-- <link rel="stylesheet" href="assets/css/menu.css"> -->
-  <!-- <link rel="stylesheet" href="assets/css/qty.css">
-  <link rel="stylesheet" href="assets/css/login.css">
-  <link rel="stylesheet" href="assets/css/signup.css"> -->
-  <link rel="stylesheet" href="../css/cart.css">
-
-  <style>
-   .te{
-    background: transparent;
-    border: none;
-   }
-</style>
-</head>
-<body>
-<nav class="custom-navbar navbar navbar-expand-lg navbar-dark fixed-top" data-spy="affix" data-offset-top="10">
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav">
-        <li class="nav-item">      
-          <input type="button" value="Home"  class="nav-link te"  href="" onclick="home(this.name)" name="index.php#Home">
-        </li>
-        <li class="nav-item">
-        <input type="button" value="Accept"  class="nav-link te"  href="" onclick="home(this.name)" name="admin.php">
-        </li>
-        <li class="nav-item">
-        <input type="button" value="Deliver"  class="nav-link te"  href="" onclick="home(this.name)" name="admin_ord.php">
-
-        </li>
-        <li class="nav-item">
-        <input type="button" value="History"  class="nav-link te"  href="" onclick="home(this.name)" name="admin_history.php">
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="<?php if(isset($_SESSION['login'])){echo'assets/php/logout.php';}else{echo 'login.php';} ?>"><?php if(isset($_SESSION['login'])){echo'Log-out';}else{echo 'Login';} ?></a>
-        </li>
-      </ul>
-      <a class="navbar-brand m-auto" href="#">
-      <img src="assets/imgs/logo3.png" class="brand-img" alt="" onclick="home(this.name)" name="index.php#Home">
-        <span class="brand-txt">Eatery</span>
-      </a>
-      <ul class="navbar-nav">
-       
-        <li class="nav-item cart-btn">
-          <a href="cart.php" class="btn btn-primary ml-xl-4 cart-btn"><img src="assets/imgs/cart.png" id="cart" alt=""
-              srcset=""></a>
-          <a href="<?php if(isset($_SESSION['login'])){echo'assets/php/profile.php';}else{echo'assets/php/error.php';} ?>" class="btn btn-primary ml-xl-4 cart-btn"><img src="assets/imgs/user.png" id="cart" alt=""></a>
-        </li>
-      </ul>
-    </div>
-    </nav> 
-<?php 
+<?php
 session_start();
+
+if (!isset($_SESSION['login']) || !isset($_SESSION['id'])) {
+    header('Location: ../../login.php');
+    exit;
+}
+
 include 'config.php';
-// $sql = "select * from orders where customer_id = $_SESSION['id']";
-// $res = mysqli_query($conn,$sql);
-// while($row = mysqli_fetch_assoc($res)){ ?>
-<header class="container-fluid">
-    <div class="row" id="cart-container">
-      <!-- <div class="col-md-3 cart-left"></div> -->
-      <div class="col-sm-6 col-md-12 col-xs-12 my-2 cart-main cart-middle">
+require_once __DIR__ . '/order_history_helpers.php';
+require_once __DIR__ . '/cart_helpers.php';
 
-                  <!-- crt header -->
-                
-                <div class="container-fluid text-c" id="cart-head">
-                  <div class="row d-flex cart-head">
-                      <div class="col-2">
-                          <h5>customer Id</h5>
-                      </div>
-                      <div class="col-3">
-                          <h5>Product name</h5>
-                      </div>
-                      <div class="col-1">
-                          <h5>Quantity</h5>
-                      </div>
-                      <div class="col-1">
-                          <h5>Table No</h5>
-                      </div>
-                      <div class="col-3">
-                          <h5>Description</h5>
-                      </div>
-                      <div class="col-2">
-                          <h5>Time</h5>
-                      </div>
-                      
-                  </div>
-                </div> 
-                 
-                 <!-- cart-product  -->
+$customerId = (int) $_SESSION['id'];
+$orderRows = fetch_customer_orders($conn, $customerId);
+$orderGroups = group_order_rows($orderRows);
+$totalOrders = count($orderGroups);
 
-              <div class="container-fluid text-c" id="cart-head">
-                  
-              <?php
-                  $cid = $_SESSION['id']; 
-                  $qr = "select * from orders where status = 'done' && customer_id = $cid";
-                  $res = mysqli_query($conn,$qr);
-                  $nid = 1;
-                  while($orders = mysqli_fetch_assoc($res)) {
-                      $id = $orders['product_id'];
-                      $qr1 = "select product_name from products where product_id = $id";
-                      $nam = mysqli_query($conn,$qr1);
-                      $name = mysqli_fetch_array($nam);
-                      ?>
-                      <div class="row d-flex cart-head">
-                      
-                      <div class="col-2">
-                          <h5><?php echo $orders['customer_id']; ?></h5>
-                          
-                      </div>
-                      <div class="col-3">
-                          <h5><?php echo $name['product_name']; ?></h5>
-                      </div>
-                      <div class="col-1">
-                          <h5><?php echo $orders['qty']; ?></h5>
-                      </div>
-                      <div class="col-1">
-                          <h5><?php echo $orders['table_no']; ?></h5>
-                      </div>
-                      <div class="col-3">
-                          <h5><?php echo $orders['order_desc']; ?></h5>
-                      </div>
-                      <div class="col-3">
-                          <h5><?php echo $orders['oreder_time']; ?></h5>
-                      </div>
-                      
-             
-                  
-                </div> 
-                <?php } ?>
-                
-                
-
-                
-            
-                
-                <!-- cart-total  -->
-                <div class="row">
-                  <div class="col-3"></div>
-                  <div class="col-9">
-                    
-                          <div class="col-6">
-                            
-                           
-                          </div>
-                        </div>
-                      </div>
-                  </div>
-                </div>
-      </div>
-     
-     
-    </div>
-</header>
-    <?php// if(isset($_SESSION['ordered'])){
-    
-                            
-                            
-            
-
-
-
-
+$completedCount = 0;
+$activeCount = 0;
+foreach ($orderGroups as $group) {
+    $meta = history_status_meta($group['status']);
+    if ($meta['class'] === 'completed') {
+        $completedCount++;
+    } else {
+        $activeCount++;
+    }
+}
 ?>
-<script src="assets/js/function.js"></script>
-  <script src="assets/vendors/jquery/jquery-3.4.1.js"></script>
-    <script src="assets/vendors/bootstrap/bootstrap.bundle.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Eatery | Order History</title>
+  <link rel="icon" href="../../assets/imgs/logo3.png">
+  <link rel="stylesheet" href="../../assets/css/foodhut.css">
+  <link rel="stylesheet" href="../../assets/css/cart.css">
+  <link rel="stylesheet" href="../../assets/css/add-to-cart.css">
+  <link rel="stylesheet" href="../../assets/css/history.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+</head>
+<body class="history-body">
 
-    <!-- bootstrap affix -->
-    <script src="assets/vendors/bootstrap/bootstrap.affix.js"></script>
+  <nav class="cart-nav navbar navbar-expand-lg navbar-dark fixed-top">
+    <div class="cart-nav__inner">
+      <a class="cart-nav__brand" href="../../index.php">
+        <img src="../../assets/imgs/logo3.png" alt="Eatery" class="cart-nav__logo">
+        <span class="cart-nav__name">Eatery</span>
+      </a>
 
-    <!-- wow.js -->
-    <script src="assets/vendors/wow/wow.js"></script>
-    
-    <!-- google maps -->
-    <!-- <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtme10pzgKSPeJVJrG1O3tjR6lk98o4w8&callback=initMap"></script> -->
+      <button class="navbar-toggler cart-nav__toggler" type="button" data-toggle="collapse" data-target="#historyNavMenu" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-    <!-- FoodHut js -->
-    <script src="assets/js/foodhut.js"></script>
+      <div class="collapse navbar-collapse" id="historyNavMenu">
+        <ul class="navbar-nav cart-nav__links">
+          <li class="nav-item"><a class="nav-link" href="../../index.php#home">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="../../index.php#Menu">Menu</a></li>
+          <li class="nav-item"><a class="nav-link" href="../../cart.php">Cart</a></li>
+          <li class="nav-item"><a class="nav-link" href="profile.php">Profile</a></li>
+        </ul>
+
+        <ul class="navbar-nav cart-nav__actions">
+          <li class="nav-item">
+            <a href="../../cart.php" class="cart-nav__icon-btn cart-link" aria-label="View cart">
+              <img src="../../assets/imgs/cart.png" class="nav-cart-icon" alt="">
+              <span class="cart-badge<?php echo get_cart_item_count() > 0 ? '' : ' is-empty'; ?>"><?php echo get_cart_item_count(); ?></span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="logout.php" class="cart-nav__auth">Log out</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="history-page">
+    <div class="history-page__inner">
+
+      <header class="history-page__hero">
+        <span class="history-page__eyebrow">Your Account</span>
+        <h1 class="history-page__title">Order History</h1>
+        <p class="history-page__subtitle">Track your past and active orders, view details, and check payment status.</p>
+      </header>
+
+      <?php if ($totalOrders > 0) : ?>
+        <div class="history-stats">
+          <div class="history-stat">
+            <span class="history-stat__value"><?php echo $totalOrders; ?></span>
+            <span class="history-stat__label">Total Orders</span>
+          </div>
+          <div class="history-stat">
+            <span class="history-stat__value"><?php echo $activeCount; ?></span>
+            <span class="history-stat__label">Active</span>
+          </div>
+          <div class="history-stat">
+            <span class="history-stat__value"><?php echo $completedCount; ?></span>
+            <span class="history-stat__label">Completed</span>
+          </div>
+        </div>
+
+        <div class="history-list">
+          <?php foreach ($orderGroups as $group) :
+            $statusMeta = history_status_meta($group['status']);
+            $paymentMeta = history_payment_meta($group['status']);
+            $itemCount = count($group['items']);
+            ?>
+            <article class="history-order">
+              <div class="history-order__head">
+                <div class="history-order__meta">
+                  <p class="history-order__number">Order #<?php echo str_pad((string) $group['order_number'], 4, '0', STR_PAD_LEFT); ?></p>
+                  <p class="history-order__date"><?php echo htmlspecialchars(format_order_date($group['order_time'])); ?></p>
+                </div>
+                <div class="history-order__badges">
+                  <span class="history-badge history-badge--<?php echo $statusMeta['class']; ?>"><?php echo htmlspecialchars($statusMeta['label']); ?></span>
+                  <span class="history-badge history-badge--<?php echo $paymentMeta['class']; ?>"><?php echo htmlspecialchars($paymentMeta['label']); ?></span>
+                </div>
+              </div>
+
+              <div class="history-order__summary">
+                <div class="history-order__stat">
+                  <span class="history-order__stat-label">Items</span>
+                  <span class="history-order__stat-value"><?php echo $itemCount; ?> product<?php echo $itemCount === 1 ? '' : 's'; ?></span>
+                </div>
+                <div class="history-order__stat">
+                  <span class="history-order__stat-label">Table</span>
+                  <span class="history-order__stat-value">#<?php echo (int) $group['table_no']; ?></span>
+                </div>
+                <div class="history-order__stat">
+                  <span class="history-order__stat-label">Total</span>
+                  <span class="history-order__stat-value history-order__stat-value--total">&#8377;<?php echo number_format((int) $group['total']); ?></span>
+                </div>
+              </div>
+
+              <button type="button" class="history-order__toggle" data-history-toggle aria-expanded="false">
+                <span>View order details</span>
+                <span class="history-order__toggle-icon">&#9662;</span>
+              </button>
+
+              <div class="history-order__details">
+                <?php foreach ($group['items'] as $item) : ?>
+                  <div class="history-item">
+                    <?php if (!empty($item['img'])) : ?>
+                      <div class="history-item__media">
+                        <img src="../../assets/uploads/<?php echo htmlspecialchars($item['img']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>">
+                      </div>
+                    <?php else : ?>
+                      <div class="history-item__media history-item__media--placeholder">&#127860;</div>
+                    <?php endif; ?>
+                    <div class="history-item__info">
+                      <p class="history-item__name"><?php echo htmlspecialchars($item['name']); ?></p>
+                      <p class="history-item__meta">
+                        Qty <?php echo (int) $item['qty']; ?>
+                        &middot; &#8377;<?php echo number_format((int) $item['price']); ?> each
+                        <?php if (!empty($item['desc'])) : ?>
+                          &middot; <?php echo htmlspecialchars($item['desc']); ?>
+                        <?php endif; ?>
+                      </p>
+                    </div>
+                    <span class="history-item__price">&#8377;<?php echo number_format((int) $item['line_total']); ?></span>
+                  </div>
+                <?php endforeach; ?>
+              </div>
+            </article>
+          <?php endforeach; ?>
+        </div>
+
+      <?php else : ?>
+        <section class="history-empty">
+          <div class="history-empty__icon">&#128203;</div>
+          <h2 class="history-empty__title">No orders yet</h2>
+          <p class="history-empty__text">When you place an order, it will appear here with status updates and full details.</p>
+          <a href="../../index.php#Menu" class="history-empty__btn">Start Ordering</a>
+        </section>
+      <?php endif; ?>
+
+    </div>
+  </main>
+
+  <footer class="cart-footer">
+    <div class="cart-footer__inner">
+      <div class="cart-footer__col"><h3>Email</h3><p>Contact@eatery.com</p></div>
+      <div class="cart-footer__col"><h3>Call</h3><p>+91 9898252898</p></div>
+      <div class="cart-footer__col"><h3>Visit</h3><p>111, Platinam hub, Noida</p></div>
+    </div>
+  </footer>
+
+  <script src="../../assets/vendors/jquery/jquery-3.4.1.js"></script>
+  <script src="../../assets/vendors/bootstrap/bootstrap.bundle.js"></script>
+  <script src="../../assets/js/history-page.js"></script>
 </body>
 </html>

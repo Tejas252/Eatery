@@ -8,7 +8,20 @@
 // }
 session_start();
 include('data_insert_take.php');
-// include('assets/php.config.php');
+require_once('assets/php/cart_helpers.php');
+require_once('assets/php/book_table_helpers.php');
+
+clear_booking_session_if_logged_out();
+
+$bookMaxGuests = book_table_max_guests($conn);
+$bookCurrentGuests = isset($_SESSION['guest']) ? (int) $_SESSION['guest'] : 2;
+$bookCurrentBooking = get_current_booking_from_session();
+$bookIsLoggedIn = isset($_SESSION['login']) && $_SESSION['login'] === true;
+$hasActiveBooking = $bookCurrentBooking !== null;
+
+if ($hasActiveBooking) {
+    $bookCurrentBooking = enrich_booking_with_table($conn, $bookCurrentBooking);
+}
 
 ?>
 
@@ -29,11 +42,20 @@ include('data_insert_take.php');
     <!-- Bootstrap + FoodHut main styles -->
 	<link rel="stylesheet" href="assets/css/foodhut.css">
   <link rel="stylesheet" href="assets/css/menu.css">
-  <link rel="stylesheet" href="assets/css/qty.css">
+  <link rel="stylesheet" href="assets/css/add-to-cart.css">
+  <link rel="stylesheet" href="assets/css/book-table.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
   <style>
     button img{
       height:20px;
       width:20px;
+    }
+    .menu-section,
+    .menu-section .product-card,
+    .menu-section .menu-category__title {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
   </style>
 </head>
@@ -69,8 +91,11 @@ include('data_insert_take.php');
       <ul class="navbar-nav">
        
         <li class="nav-item cart-btn">
-          <a href="cart.php" class="btn btn-primary ml-xl-4 cart-btn"><img src="assets/imgs/cart.png" id="cart" alt="" srcset=""></a>
-          <a href="<?php if(isset($_SESSION['login'])){echo'assets/php/profile.php';}else{echo'assets/php/error.php';} ?>" class="btn btn-primary ml-xl-4 cart-btn"><img src="assets/imgs/user.png" id="cart" alt=""></a>
+          <a href="cart.php" class="btn btn-primary ml-xl-4 cart-btn cart-link" aria-label="View cart">
+            <img src="assets/imgs/cart.png" class="nav-cart-icon" alt="">
+            <span class="cart-badge<?php echo get_cart_item_count() > 0 ? '' : ' is-empty'; ?>" id="cart-count"><?php echo get_cart_item_count(); ?></span>
+          </a>
+          <a href="<?php if(isset($_SESSION['login'])){echo'assets/php/profile.php';}else{echo'assets/php/error.php';} ?>" class="btn btn-primary ml-xl-4 cart-btn"><img src="assets/imgs/user.png" class="nav-cart-icon" alt=""></a>
         </li> 
       </ul>
     </div>
@@ -85,123 +110,89 @@ include('data_insert_take.php');
     </div>
   </header>
 
-  <div class="container-fluid has-bg-overlay text-center text-light has-height-lg middle-items" id="book-table">
-    <div class="">
-      <h2 class="section-title mb-3">BOOK A TABLE</h2>
-      <div class="row">
-        <div class="col-md-3"></div>
-        <div class="col-sm-6 col-md-6 col-xs-12 my-2">
-          <form action="#book-table" method="post">
-            <input type="number" value="<?php if(isset($_SESSION['guest'])){echo $_SESSION['guest']; } ?>" name="table_guests" onchange="check()" id="booktable" class="form-control form-control-lg custom-form-control"
-            placeholder="NUMBER OF GUESTS" min="1" max="5" required>
-           
-            <?php  if(isset($_SESSION['id'])){echo ' <button type="submit" onclick="clk()" href="#book-table" class="btn btn-lg btn-primary my-4" name="find" id="rounded-btn" >FIND TABLE</button>';}else{ echo "<p class='btn btn-lg btn-primary my-4'> Login First</p>"; }  ?> 
-          </form> 
-        </div>
-        <div class="col-md-3"></div>
-      </div>
-      <script>
+  <section
+    class="book-table-section"
+    id="book-table"
+    data-logged-in="<?php echo $bookIsLoggedIn ? '1' : '0'; ?>"
+    data-max-guests="<?php echo (int) $bookMaxGuests; ?>"
+    data-has-active-booking="<?php echo $hasActiveBooking ? '1' : '0'; ?>"
+  >
+    <div class="book-table-section__inner">
+      <header class="book-table-section__header">
+        <span class="book-table-section__eyebrow">Reservations</span>
+        <h2 class="book-table-section__title">Book a Table</h2>
+        <p class="book-table-section__subtitle" id="bookTableSubtitle">
+          <?php if ($hasActiveBooking) : ?>
+            Your table is reserved. Browse the menu when you are ready.
+          <?php else : ?>
+            Choose your party size, pick an available table, and confirm your reservation in seconds.
+          <?php endif; ?>
+        </p>
+      </header>
 
-          function check() {
-            let g = document.getElementById('booktable').value;
-            if(g>5){
-              alert('only 5 members');
-              document.getElementById('booktable').value = 5;
-              
-            }
-            
-          }
-          
-        </script>
-      <div class="row">
-        <div class="col-md-3"></div>
-        <div class="col-sm-6 col-md-6 col-xs-12 my-2">
-          <form action="" method="post">
-          <select type="number" name="table_no" id="table_nn" class="form-control form-control-lg custom-form-control"
-            placeholder="TABLE NUMBER" disabled required>
-             <?php 
-              
-                          // $size = <scri></scri>
-                  if($_SERVER["REQUEST_METHOD"]=="POST"){
+      <div class="book-table-layout" id="bookTableBookingFlow" <?php echo $hasActiveBooking ? 'hidden' : ''; ?>>
+        <aside class="book-table-panel" aria-label="Booking details">
+          <h3 class="book-table-panel__title">Reservation Details</h3>
 
-                    if(isset($_POST['book'])&&isset($_POST['table_no'])){
-                      $tab = $_POST['table_no'];
-                      $qr3 = "update book_table set table_status = 'res' where table_no = $tab";
-                      $res = mysqli_query($conn,$qr3);
-                      if(!$res){
-                        echo"<script>console.log('get error');</script>";
-                      }
-                      $_SESSION['table'] = $_POST['table_no'];
-          
-                    }
-                    if(isset($_SESSION['table'])){
-                      $no = $_SESSION['table'];
-                      echo " <option name='table_no' class='btn-primary' value=$no>Table : $no (Booked)</option>";
-          
-                    }else{
-                      if(isset($_POST['find']) && isset($_POST['table_guests'])){
-                        // echo"hello";
-                        $_SESSION['guest'] = $_POST['table_guests'];
-                        $g = $_POST['table_guests'];
-                        $qrr = "select * from book_table where table_status = 'non' && table_size >= $g";
-                        $resss = mysqli_query($conn,$qrr);
-                        $cnt = mysqli_num_rows($resss);
-                        if($cnt>0){
-                          while($table = mysqli_fetch_assoc($resss)){
-                            $no = $table['table_no'];
-                            echo " <option name='table_no' class='btn-primary' value=$no>Table : $no</option>";
-                            
-                          }   
-                        }else{
-                          echo " <option class='btn-primary' disabled> Not Available </option>";
-                        }
-                      
-                      }else{
-                        echo " <option class='btn-primary' disabled > Enter Number of Guests </option>";
-                      }
-                    }
-                    
-                  
-                  }
-                      
-
-                          
-
-                  ?> 
-            
-           
-          </select>
-          <?php    
-            if(isset($_SESSION['guest'])){
-                                                echo "<script>
-                                                let g1 = parseInt(".$_SESSION['guest'].");
-                                                console.log(g1);
-                                                if(g1>0){
-                                                  document.getElementById('table_nn').disabled = false;
-                                                }
-                                                console.log(g1);
-                                                </script>
-
-                                                "; 
-                                              }
-                             
-                              
-                              ?>
-        </div>
-        <div class="col-md-3"></div>
-      </div>
-      <div class="row">
-        <div class="col-md-3"></div>
-        <div class="col-sm-6 col-md-6 col-xs-12 my-2">
-                <h6 class="" style="color: #ff214f;">Note: First Input Number of Guests</h6>
+          <div class="book-table-field">
+            <label for="bookingGuests">Number of guests</label>
+            <div class="book-table-guest-stepper">
+              <button type="button" id="bookingGuestsDecrease" aria-label="Decrease guests">−</button>
+              <input type="number" id="bookingGuests" value="<?php echo max(1, min($bookMaxGuests, $bookCurrentGuests)); ?>" min="1" max="<?php echo (int) $bookMaxGuests; ?>" inputmode="numeric">
+              <button type="button" id="bookingGuestsIncrease" aria-label="Increase guests">+</button>
+            </div>
           </div>
-          <div class="col-md-3"></div>
+
+          <?php if (!$bookIsLoggedIn) : ?>
+            <p class="book-table-login-note">Please <a href="login.php">log in</a> to reserve a table.</p>
+          <?php endif; ?>
+
+          <div class="book-table-actions">
+            <button type="button" class="book-table-btn book-table-btn--primary" id="bookTableSubmit" <?php echo $bookIsLoggedIn ? '' : 'disabled'; ?>>
+              <span class="book-table-btn__loader" aria-hidden="true"></span>
+              <span>Confirm Booking</span>
+            </button>
+            <button type="button" class="book-table-btn book-table-btn--ghost" id="bookTableRefresh">Refresh Availability</button>
+          </div>
+
+          <div class="book-table-message" id="bookTableMessage" role="status"></div>
+        </aside>
+
+        <div class="book-table-floor" aria-label="Restaurant floor plan">
+          <div class="book-table-floor__head">
+            <h3 class="book-table-floor__title">Live Table Availability</h3>
+            <div class="book-table-legend">
+              <span class="book-table-legend__item"><span class="book-table-legend__dot book-table-legend__dot--available"></span> Available</span>
+              <span class="book-table-legend__item"><span class="book-table-legend__dot book-table-legend__dot--reserved"></span> Reserved</span>
+              <span class="book-table-legend__item"><span class="book-table-legend__dot book-table-legend__dot--occupied"></span> Occupied</span>
+              <span class="book-table-legend__item"><span class="book-table-legend__dot book-table-legend__dot--unavailable"></span> Unavailable</span>
+            </div>
+          </div>
+          <div class="book-table-grid" id="bookTableGrid"></div>
+        </div>
       </div>
 
-      <button name="book" class="btn btn-lg btn-primary mb-4" id="rounded-btn">BOOK TABLE</button>
-      </form>
+      <div
+        class="book-table-active"
+        id="bookTableActiveReservation"
+        aria-label="Your current reservation"
+        <?php echo $hasActiveBooking ? '' : 'hidden'; ?>
+      >
+        <div class="book-table-active__bar">
+          <span class="book-table-active__indicator" aria-hidden="true"></span>
+          <p class="book-table-active__summary">
+            <strong>Table <span data-field="table-no"><?php echo $hasActiveBooking ? (int) $bookCurrentBooking['table_no'] : ''; ?></span></strong>
+            <span class="book-table-active__sep" aria-hidden="true">·</span>
+            <span data-field="capacity"><?php echo ($hasActiveBooking && !empty($bookCurrentBooking['capacity'])) ? (int) $bookCurrentBooking['capacity'] . ' seats' : ''; ?></span>
+            <span class="book-table-active__sep" aria-hidden="true">·</span>
+            <span data-field="guests"><?php echo $hasActiveBooking ? (int) $bookCurrentBooking['guests'] . ' guest' . ((int) $bookCurrentBooking['guests'] === 1 ? '' : 's') : ''; ?></span>
+            <span class="book-table-active__badge" data-field="status"><?php echo $hasActiveBooking ? 'Confirmed' : ''; ?></span>
+          </p>
+          <a class="book-table-active__link" href="#Menu">Browse Menu</a>
+        </div>
+      </div>
     </div>
-  </div>
+  </section>
 
 
 
@@ -212,127 +203,45 @@ include('data_insert_take.php');
     <div id="Menu" class="text-center bg-dark text-light has-height-md middle-items wow fadeIn">
     <h2 class="my-3">OUR MENU</h2>
   </div>
-    <!-- qty-form -->
+  
+    <?php include('assets/php/product_card.php'); ?>
 
-    <div class="container-fluid qty_form mt-2" id="qty_form">
-      <div class="row">
-        <div class="col"></div>
-        <div class="col-md-3 col-sm-6 col-xs-10">
-          <form class="py-4 pl-4 pr-4" target="_self" action="assets/php/qty_session.php" method="post">
-            <h4 class="mb-4" id="form_prd_name" style="color: #ff214f"></h4>
+    <div class="menu-section">
+      <div class="menu-section__inner">
+        <?php
+          render_product_carousel(
+            'pizza',
+            'Pizza',
+            'Handcrafted Favorites',
+            "SELECT * FROM products WHERE LOWER(product_type) = 'pizza' AND product_qty > 0 ORDER BY product_no ASC",
+            $conn
+          );
 
-            <div class="mb-3">
-              <label for="exampleInputEmail1" class="form-label">Product id</label>
-              <input name="product_no" type="number" class="form-control" id="product_no" aria-describedby="emailHelp"
-                readonly>
-
-            </div>
-            <div class="mb-3">
-              <label for="" class="form-label">Quantity</label>
-              <input name="qty" type="number" class="form-control" id="exampleInputPassword1" min="1" max="10" required>
-
-            </div>
-
-            <button name = "submit" type="submit" class="btn btn-primary " onclick="submit()">submit</button>
-
-          </form>
-        </div>
-        <div class="col"></div>
+          render_product_carousel(
+            'burger',
+            'Burgers',
+            'Signature Classics',
+            "SELECT * FROM products WHERE LOWER(product_type) = 'burger' AND product_qty > 0 ORDER BY product_no ASC",
+            $conn,
+            true
+          );
+        ?>
       </div>
     </div>
-  
-    <h2 class=" mb-3 ml-3" style="display:block;">Pizza<button value="pizza" onclick="shw(this.value)" class="ml-3 btn btn-primary">🔻</button> </h5>
-    
-    <div id="pizza" class="prdlist">
-      <?php
-        include('data_insert_take.php');
-        $qr2 = "select * from products where product_type = 'pizza' and product_qty > 0";
-        $result = mysqli_query($conn, $qr2);
-        if (mysqli_num_rows($result) > 0) {
-          while ($image = mysqli_fetch_assoc($result)) {
-            // echo '<div class="col-sm-6 col-lg-3 Menu-item wow fadeIn">';
-            // echo '<a href="#menu" class="Menu-overlay">';
-            // echo '<img src="assets/uploads/'.$image['product_img'].'" alt="template by DevCRID http://www.devcrud.com/" class="Menu-img">';
-            // echo '<i class="Menu-icon ti-plus"></i>';
-            // echo ' </a></div>';
-        
-            echo '<div class="prd">';
-            echo '<img src="assets/uploads/' . $image['product_img'] . '" alt="hey" class="ml-2 my-2">';
-            echo '<div class="prd_det ml-2 my-2">';
-            echo '<h5 id="prd_name"><b>' . $image['product_name'] . '</b></h5>';
-            echo '<p class="small_text">' . $image['product_type'] . '</p>';
-            echo '<p class="small_text">' . $image['product_desc'] . '</p>';
-            echo '<h6><b>Price : ' . $image['product_price'] . '</b></h6>';
-            echo '</div>';
-            echo '<div class="add ml-1 mr-2">';
-            echo '<a class = "prod" href="#menu" onclick="addto(this.name)" name="' . $image['product_no'] . '_' . $image['product_name'] . '">+</a>';
-            echo '</div></div>';
-            // unset($_POST['submit']);
-          }
-        }else{
-          echo "<div class='ml-5'><p>It will Add soon</p></div>";
-        } 
-        ?>
-    </div>
-    <hr>
-    <h2 class=" mb-3 ml-3" style="display:block;">Burgers<button value="burger" onclick="shw(this.value)" class="ml-3 btn btn-primary"><img class="" src="assets/imgs/down.png" alt=""></button> </h5>
-    <div id="burger" class="prdlist hide">
-      <?php
-        include('data_insert_take.php');
-        $qr2 = "select * from products where product_type = 'Burger' and product_qty > 0";
-        $result = mysqli_query($conn, $qr2);
-        if (mysqli_num_rows($result) > 0) {
-          while ($image = mysqli_fetch_assoc($result)) {
-            // echo '<div class="col-sm-6 col-lg-3 Menu-item wow fadeIn">';
-            // echo '<a href="#menu" class="Menu-overlay">';
-            // echo '<img src="assets/uploads/'.$image['product_img'].'" alt="template by DevCRID http://www.devcrud.com/" class="Menu-img">';
-            // echo '<i class="Menu-icon ti-plus"></i>';
-            // echo ' </a></div>';
-        
-            echo '<div class="prd">';
-            echo '<img src="assets/uploads/' . $image['product_img'] . '" alt="hey" class="ml-2 my-2">';
-            echo '<div class="prd_det ml-2 my-2">';
-            echo '<h5 id="prd_name"><b>' . $image['product_name'] . '</b></h5>';
-            echo '<p class="small_text">' . $image['product_type'] . '</p>';
-            echo '<p class="small_text">' . $image['product_desc'] . '</p>';
-            echo '<h6><b>Price : ' . $image['product_price'] . '</b></h6>';
-            echo '</div>';
-            echo '<div class="add ml-1 mr-2">';
-            echo '<a class = "prod" href="#menu" onclick="addto(this.name)" name="' . $image['product_no'] . '_' . $image['product_name'] . '">+</a>';
-            echo '</div></div>';
-            // unset($_POST['submit']);
-          }
-        }else{
-          echo "<div class='ml-5'><p>It will Add soon</p></div>";
-        }
-        ?>
-    </div>
-        <hr>
         <script>
-          var prd = [];
-          function addto(d) {
-
-            var arr = d.split("_");
-            console.log(arr);
-            document.getElementById('product_no').value = arr[0];
-            // let name = document.getElementById('prd_name').value;
-            document.getElementById('form_prd_name').innerText = arr[1]; 
-            document.getElementById('qty_form').classList.add('show');
-            window.location.href = "index.php#Menu";
-            // if(prd.includes(d)){
-
-            // }else{
-            //   prd.push(d);
-            //   console.log(prd);
-            // }
-          }
-          function submit(){
-            document.getElementById('qty_form').classList.remove('show'); 
-          }
-
           function shw(i) {
-            document.getElementById(i).classList.toggle('hide');
-            // document.getElementById(i).
+            var carousel = document.getElementById(i);
+            var section = document.getElementById(i + '-section');
+            if (carousel) {
+              carousel.classList.toggle('hide');
+            }
+            if (section) {
+              section.classList.toggle('is-collapsed');
+              var toggle = section.querySelector('.menu-category__toggle');
+              if (toggle) {
+                toggle.setAttribute('aria-expanded', section.classList.contains('is-collapsed') ? 'false' : 'true');
+              }
+            }
           }
         </script>
 
@@ -377,6 +286,8 @@ include('data_insert_take.php');
 
     <!-- end of page footer -->
 
+    <?php include('assets/php/cart_modal.php'); ?>
+
 	<!-- core  -->
     <script src="assets/vendors/jquery/jquery-3.4.1.js"></script>
     <script src="assets/vendors/bootstrap/bootstrap.bundle.js"></script>
@@ -392,6 +303,9 @@ include('data_insert_take.php');
 
     <!-- FoodHut js -->
     <script src="assets/js/foodhut.js"></script>
+    <script src="assets/js/menu-carousel.js"></script>
+    <script src="assets/js/add-to-cart.js"></script>
+    <script src="assets/js/book-table.js"></script>
 
 </body>
 </html>
