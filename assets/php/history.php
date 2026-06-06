@@ -9,6 +9,13 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['id'])) {
 include 'config.php';
 require_once __DIR__ . '/order_history_helpers.php';
 require_once __DIR__ . '/cart_helpers.php';
+require_once __DIR__ . '/collection_helpers.php';
+require_once __DIR__ . '/book_table_helpers.php';
+
+clear_booking_session_if_logged_out();
+
+$collections = get_collections();
+$navHasActiveBooking = get_current_booking_from_session() !== null;
 
 $customerId = (int) $_SESSION['id'];
 $orderRows = fetch_customer_orders($conn, $customerId);
@@ -33,9 +40,11 @@ foreach ($orderGroups as $group) {
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <title>Eatery | Order History</title>
   <link rel="icon" href="../../assets/imgs/logo3.png">
+  <link rel="stylesheet" href="../../assets/css/theme.css">
   <link rel="stylesheet" href="../../assets/css/foodhut.css">
   <link rel="stylesheet" href="../../assets/css/cart.css">
   <link rel="stylesheet" href="../../assets/css/add-to-cart.css">
+  <link rel="stylesheet" href="../../assets/css/site-header.css">
   <link rel="stylesheet" href="../../assets/css/history.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,39 +52,12 @@ foreach ($orderGroups as $group) {
 </head>
 <body class="history-body">
 
-  <nav class="cart-nav navbar navbar-expand-lg navbar-dark fixed-top">
-    <div class="cart-nav__inner">
-      <a class="cart-nav__brand" href="../../index.php">
-        <img src="../../assets/imgs/logo3.png" alt="Eatery" class="cart-nav__logo">
-        <span class="cart-nav__name">Eatery</span>
-      </a>
-
-      <button class="navbar-toggler cart-nav__toggler" type="button" data-toggle="collapse" data-target="#historyNavMenu" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div class="collapse navbar-collapse" id="historyNavMenu">
-        <ul class="navbar-nav cart-nav__links">
-          <li class="nav-item"><a class="nav-link" href="../../index.php#home">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="../../index.php#Menu">Menu</a></li>
-          <li class="nav-item"><a class="nav-link" href="../../cart.php">Cart</a></li>
-          <li class="nav-item"><a class="nav-link" href="profile.php">Profile</a></li>
-        </ul>
-
-        <ul class="navbar-nav cart-nav__actions">
-          <li class="nav-item">
-            <a href="../../cart.php" class="cart-nav__icon-btn cart-link" aria-label="View cart">
-              <img src="../../assets/imgs/cart.png" class="nav-cart-icon" alt="">
-              <span class="cart-badge<?php echo get_cart_item_count() > 0 ? '' : ' is-empty'; ?>"><?php echo get_cart_item_count(); ?></span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="logout.php" class="cart-nav__auth">Log out</a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+  <?php
+    $navBase = '../../';
+    $navCollections = $collections;
+    $navActiveCollection = null;
+    include __DIR__ . '/site_header.php';
+  ?>
 
   <main class="history-page">
     <div class="history-page__inner">
@@ -173,7 +155,7 @@ foreach ($orderGroups as $group) {
           <div class="history-empty__icon">&#128203;</div>
           <h2 class="history-empty__title">No orders yet</h2>
           <p class="history-empty__text">When you place an order, it will appear here with status updates and full details.</p>
-          <a href="../../index.php#Menu" class="history-empty__btn">Start Ordering</a>
+          <a href="../../index.php#best-selling" class="history-empty__btn">Start Ordering</a>
         </section>
       <?php endif; ?>
 
@@ -191,5 +173,6 @@ foreach ($orderGroups as $group) {
   <script src="../../assets/vendors/jquery/jquery-3.4.1.js"></script>
   <script src="../../assets/vendors/bootstrap/bootstrap.bundle.js"></script>
   <script src="../../assets/js/history-page.js"></script>
+  <script src="../../assets/js/profile-menu.js"></script>
 </body>
 </html>

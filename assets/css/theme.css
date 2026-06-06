@@ -1,0 +1,225 @@
+/**
+ * Eatery Design System
+ * Dark theme — orange accent palette
+ */
+:root {
+  /* ── Schema tokens (your palette) ─────────────────────────────────── */
+  --bg-primary: #121212;
+  --bg-secondary: #1a1a1a;
+  --card-bg: #1e1e1e;
+
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+
+  --accent: #ff8c00;
+  --accent-hover: #ffa733;
+
+  --border: #2a2a2a;
+
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --error: #ef4444;
+
+  /* Extended schema */
+  --colors_footer_background: #0d0d0d;
+  --colors_input_border: #333333;
+
+  /* ── Eatery tokens (mapped to schema — used across all pages) ─────── */
+  --eatery-accent: var(--accent);
+  --eatery-accent-light: var(--accent-hover);
+  --eatery-accent-dark: #e67e00;
+  --eatery-accent-muted: #ffb84d;
+  --eatery-accent-rgb: 255, 140, 0;
+
+  --eatery-bg-deep: var(--colors_footer_background);
+  --eatery-bg-base: var(--bg-primary);
+  --eatery-bg-raised: var(--bg-secondary);
+  --eatery-bg-surface: var(--card-bg);
+  --eatery-bg-muted: #252525;
+  --eatery-bg-overlay: rgba(18, 18, 18, 0.94);
+
+  --eatery-text: var(--text-primary);
+  --eatery-text-rgb: 255, 255, 255;
+  --eatery-text-secondary: var(--text-secondary);
+  --eatery-text-muted: #8a8a8a;
+  --eatery-text-faint: #666666;
+
+  --eatery-border: var(--border);
+  --eatery-border-strong: var(--colors_input_border);
+  --eatery-border-focus: rgba(var(--eatery-accent-rgb), 0.55);
+  --eatery-surface: var(--card-bg);
+  --eatery-surface-hover: #252525;
+  --eatery-surface-elevated: #242424;
+  --eatery-input-bg: var(--card-bg);
+  --eatery-input-bg-focus: #252525;
+
+  --eatery-success: var(--success);
+  --eatery-success-light: #4ade80;
+  --eatery-success-rgb: 34, 197, 94;
+  --eatery-warning: var(--warning);
+  --eatery-warning-light: #fbbf24;
+  --eatery-info: #60a5fa;
+  --eatery-info-light: #93c5fd;
+  --eatery-danger: var(--error);
+  --eatery-danger-light: #f87171;
+
+  --eatery-pizza: var(--accent-hover);
+  --eatery-burger: #ffb347;
+  --eatery-gold: var(--warning);
+
+  --eatery-gradient-primary: linear-gradient(135deg, var(--accent) 0%, var(--eatery-accent-dark) 100%);
+  --eatery-gradient-primary-hover: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent) 100%);
+  --eatery-gradient-page: radial-gradient(ellipse 70% 45% at 50% -5%, rgba(var(--eatery-accent-rgb), 0.1), transparent 55%),
+    linear-gradient(180deg, var(--eatery-bg-deep) 0%, var(--eatery-bg-base) 100%);
+  --eatery-gradient-section: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 45%, var(--eatery-bg-deep) 100%);
+  --eatery-gradient-hero: radial-gradient(ellipse 90% 70% at 50% 0%, rgba(var(--eatery-accent-rgb), 0.14), transparent 55%),
+    linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+
+  --eatery-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --eatery-shadow-md: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --eatery-shadow-lg: 0 20px 56px rgba(0, 0, 0, 0.55);
+  --eatery-shadow-accent: 0 10px 28px rgba(var(--eatery-accent-rgb), 0.32);
+  --eatery-shadow-accent-hover: 0 14px 32px rgba(var(--eatery-accent-rgb), 0.42);
+  --eatery-focus-ring: 0 0 0 3px rgba(var(--eatery-accent-rgb), 0.2);
+
+  --eatery-accent-subtle: rgba(var(--eatery-accent-rgb), 0.12);
+  --eatery-accent-soft: rgba(var(--eatery-accent-rgb), 0.2);
+  --eatery-accent-medium: rgba(var(--eatery-accent-rgb), 0.35);
+
+  --eatery-font: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --eatery-radius-sm: 8px;
+  --eatery-radius-md: 12px;
+  --eatery-radius-lg: 16px;
+  --eatery-radius-xl: 20px;
+  --eatery-radius-pill: 999px;
+  --eatery-transition: 0.2s ease;
+
+  /* Bootstrap bridge (foodhut.css) */
+  --primary: var(--accent);
+  --pink: var(--accent);
+  --dark: var(--bg-secondary);
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+/* ── Global base ─────────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--eatery-bg-base);
+  color: var(--eatery-text);
+  font-family: var(--eatery-font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(var(--eatery-accent-rgb), 0.35);
+  color: #fff;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--eatery-accent-light);
+  outline-offset: 2px;
+}
+
+/* ── Shared focus ring utility ───────────────────────────────────────── */
+.eatery-focus-ring:focus-visible {
+  outline: none;
+  border-color: var(--eatery-border-focus);
+  box-shadow: var(--eatery-focus-ring);
+}
+
+/* ── Bootstrap / legacy footer ───────────────────────────────────────── */
+.container-fluid.bg-dark.text-light.has-height-md,
+footer.bg-dark {
+  background: var(--eatery-bg-deep) !important;
+  border-top: 1px solid var(--eatery-border) !important;
+  color: var(--eatery-text-secondary) !important;
+}
+
+.container-fluid.bg-dark.text-light.has-height-md h3,
+footer.bg-dark h3 {
+  color: var(--eatery-text-faint) !important;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.container-fluid.bg-dark.text-light.has-height-md .text-muted,
+footer.bg-dark .text-muted {
+  color: var(--eatery-text-secondary) !important;
+}
+
+/* ── Legacy navbar (login / foodhut pages) ───────────────────────────── */
+.custom-navbar.affix,
+.affix {
+  background: var(--eatery-bg-overlay) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--eatery-border) !important;
+}
+
+@media (max-width: 1199.98px) {
+  .custom-navbar:not(.site-nav) {
+    background-color: var(--eatery-bg-overlay) !important;
+  }
+}
+
+.navbar .nav-link.active {
+  color: var(--eatery-accent-light) !important;
+}
+
+.navbar-brand .brand-txt {
+  color: var(--eatery-accent) !important;
+}
+
+/* ── Login / signup forms ────────────────────────────────────────────── */
+form.border-white,
+form[class*='border'] {
+  border-color: var(--eatery-border-strong) !important;
+  background: var(--eatery-surface);
+  border-radius: var(--eatery-radius-lg);
+}
+
+.form-control,
+input.form-control,
+select.form-control,
+textarea.form-control {
+  background: var(--eatery-input-bg);
+  border-color: var(--eatery-border-strong);
+  color: var(--eatery-text);
+  border-radius: var(--eatery-radius-md);
+}
+
+.form-control:focus {
+  background: var(--eatery-input-bg-focus);
+  border-color: var(--eatery-border-focus);
+  box-shadow: var(--eatery-focus-ring);
+  color: var(--eatery-text);
+}
+
+.btn-primary {
+  background: var(--eatery-gradient-primary) !important;
+  border-color: var(--eatery-accent-dark) !important;
+  box-shadow: var(--eatery-shadow-accent);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background: var(--eatery-gradient-primary-hover) !important;
+  border-color: var(--eatery-accent) !important;
+  box-shadow: var(--eatery-shadow-accent-hover);
+}
+
+.text-primary {
+  color: var(--eatery-accent-light) !important;
+}

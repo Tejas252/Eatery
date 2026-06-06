@@ -1,342 +1,94 @@
-<?php session_start(); ?>
-<html>
-<head>
-<meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Start your development with FoodHut landing page.">
-  <meta name="author" content="Devcrud">
-  <title>Eatery : Flavor For Royalty</title>
-  <link rel="icon" href="assets/imgs/logo3.png">
-
-  <!-- font icons -->
-  <link rel="stylesheet" href="assets/vendors/themify-icons/css/themify-icons.css">
-
-  <link rel="stylesheet" href="assets/vendors/animate/animate.css">
-
-  <!-- Bootstrap + FoodHut main styles -->
-  <link rel="stylesheet" href="assets/css/foodhut.css">
-  <!-- <link rel="stylesheet" href="assets/css/menu.css"> -->
-  <!-- <link rel="stylesheet" href="assets/css/qty.css">
-  <link rel="stylesheet" href="assets/css/login.css">
-  <link rel="stylesheet" href="assets/css/signup.css"> -->
-  <link rel="stylesheet" href="assets/css/cart.css">
-
-  <style>
-   .te{
-    background: transparent;
-    border: none;
-   }
-   ::placeholder{
-    color: white;
-   }
-   /* .srch{
-    right: 3px;
-    margin : 13px 13px;
-    float:right;
-   } */
-
-   header{
-    margin : 30vh;
-   }
-</style>
-</head>
-<body>
-<nav class="custom-navbar navbar navbar-expand-lg navbar-dark fixed-top" data-spy="affix" data-offset-top="10">
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav">
-      <li class="nav-item">      
-          <input type="button" value="Add Items"  class="nav-link te"  href="" onclick="home(this.name)" name="data_insert.php">
-        </li>
-        <li class="nav-item">
-        <input type="button" value="Accept"  class="nav-link te"  href="" onclick="home(this.name)" name="admin.php">
-        </li>
-        <li class="nav-item">
-        <input type="button" value="Deliver"  class="nav-link te"  href="" onclick="home(this.name)" name="admin_ord.php">
-
-        </li>
-        <li class="nav-item">
-        <input type="button" value="History"  class="nav-link te"  href="" onclick="home(this.name)" name="admin_history.php">
-        </li>
-        <li class="nav-item">
-        <input type="button" value="Products"  class="nav-link te"  href="" onclick="home(this.name)" name="products.php">
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="<?php if(isset($_SESSION['login'])){echo'assets/php/logout.php';}else{echo 'login.php';} ?>"><?php if(isset($_SESSION['login'])){echo'Log-out';}else{echo 'Login';} ?></a>
-        </li>
-      </ul>
-      <a class="navbar-brand m-auto" href="#">
-      <img src="assets/imgs/logo3.png" class="brand-img" alt="" onclick="home(this.name)" name="index.php#Home">
-        <span class="brand-txt">Eatery</span>
-      </a>
-      <ul class="navbar-nav">
-       
-        <li class="nav-item cart-btn">
-          <a href="cart.php" class="btn btn-primary ml-xl-4 cart-btn"><img src="assets/imgs/cart.png" id="cart" alt=""
-              srcset=""></a>
-          <a href="<?php if(isset($_SESSION['login'])){echo'assets/php/profile.php';}else{echo'assets/php/error.php';} ?>" class="btn btn-primary ml-xl-4 cart-btn"><img src="assets/imgs/user.png" id="cart" alt=""></a>
-        </li>
-      </ul>
-    </div>
-    </nav>   
-<?php 
-// session_start();
+<?php
 include 'assets/php/config.php';
-// $sql = "select * from orders where customer_id = $_SESSION['id']";
-// $res = mysqli_query($conn,$sql);
-// while($row = mysqli_fetch_assoc($res)){ ?>
+session_start();
 
+$adminPageTitle = 'Order History';
+$adminPageSubtitle = 'Search and browse all past orders';
+$adminActiveNav = 'history';
 
-<?php
-if($_SERVER["REQUEST_METHOD"]=="GET"){
-    if(isset($_GET['search'])){ ?>
-        <header class="container-fluid">
+require_once 'assets/php/admin_helpers.php';
 
-        <div class="srch">
-    <form action="" method="get">
-        <input type="number" name="cid" placeholder="Customer ID">
-        <input name="search" type="submit"  value="✔">
-    </form>
-</div>
-    <div class="row" id="cart-container">
-      <!-- <div class="col-md-3 cart-left"></div> -->
-      <div class="col-sm-6 col-md-12 col-xs-12 my-2 cart-main cart-middle">
+$isSearch = $_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search']) && isset($_GET['cid']);
+$searchCid = $isSearch ? (int) $_GET['cid'] : 0;
 
-                  <!-- crt header -->
-                
-                <div class="container-fluid text-c" id="cart-head">
-                  <div class="row d-flex cart-head">
-                      <div class="col-2">
-                          <h5>customer Id</h5>
-                      </div>
-                      <div class="col-3">
-                          <h5>Product name</h5>
-                      </div>
-                      <div class="col-1">
-                          <h5>Quantity</h5>
-                      </div>
-                      <div class="col-1">
-                          <h5>Table No</h5>
-                      </div>
-                      <div class="col-3">
-                          <h5>Description</h5>
-                      </div>
-                      <div class="col-2">
-                          <h5>Time</h5>
-                      </div>
-                      
-                  </div>
-                </div> 
-                 
-                 <!-- cart-product  -->
+if ($isSearch) {
+    $qr = "SELECT * FROM orders WHERE customer_id = $searchCid ORDER BY oreder_time DESC";
+} else {
+    $qr = 'SELECT * FROM orders ORDER BY oreder_time DESC';
+}
 
-              <div class="container-fluid text-c" id="cart-head">
-                  
-              <?php
-                  $cid = $_SESSION['id']; 
-                  $scid = $_GET['cid'];
-                  $qr = "select * from orders where customer_id= $scid order by oreder_time DESC";
-                  $res = mysqli_query($conn,$qr);
-                  if(mysqli_num_rows($res) != 0){
-                    // print_r($res);
-                    $nid = 1;
-                  while($orders = mysqli_fetch_assoc($res)) {
-                      $id = $orders['product_id'];
-                      $qr1 = "select product_name from products where product_id = $id";
-                      $nam = mysqli_query($conn,$qr1);
-                      $name = mysqli_fetch_array($nam);
-                      ?>
-                <div class="row d-flex cart-head">
-                      
-                      <div class="col-2">
-                          <h5><?php echo $orders['customer_id']; ?></h5>
-                          
-                      </div>
-                      <div class="col-3">
-                          <h5><?php echo $name['product_name']; ?></h5>
-                      </div>
-                      <div class="col-1">
-                          <h5><?php echo $orders['qty']; ?></h5>
-                      </div>
-                      <div class="col-1">
-                          <h5><?php echo $orders['table_no']; ?></h5>
-                      </div>
-                      <div class="col-3">
-                          <h5><?php echo $orders['order_desc']; ?></h5>
-                      </div>
-                      <div class="col-3">
-                          <h5><?php echo $orders['oreder_time']; ?></h5>
-                      </div>
-                      
-             
-                  
-                </div> 
-                <?php } } else { ?>
-                  <div class="row">
-                    <div class="col">
-                        <h4>Data not Found</h4>
-                    </div>
-                  </div>
-                  
-                  
-                
-                <?php } ?>
+$res = mysqli_query($conn, $qr);
+$hasOrders = $res && mysqli_num_rows($res) > 0;
 
-                
-            
-                
-                <!-- cart-total  -->
-                <div class="row">
-                  <div class="col-3"></div>
-                  <div class="col-9">
-                    
-                          <div class="col-6">
-                            
-                           
-                          </div>
-                        </div>
-                      </div>
-                  </div>
-                </div>
-      </div>
-     
-     
-    </div>
-</header>
-<?php
-    }else{
-
-
-
+include 'assets/php/admin_header.php';
 ?>
-<header class="container-fluid">
-<div class="srch">
-    <form action="" method="get">
-        <input type="number" name="cid" placeholder="Customer ID">
-        <input name="search" type="submit"  value="✔">
+
+<section class="admin-card">
+  <div class="admin-card__header">
+    <h2 class="admin-card__title">
+      <?php echo $isSearch ? 'Search Results · Customer #' . $searchCid : 'All Orders'; ?>
+    </h2>
+    <form action="" method="get" class="admin-search">
+      <input
+        type="number"
+        name="cid"
+        class="admin-input"
+        placeholder="Customer ID"
+        value="<?php echo $isSearch ? $searchCid : ''; ?>"
+        min="1"
+        required
+        aria-label="Customer ID"
+      >
+      <button type="submit" name="search" value="1" class="admin-btn admin-btn--primary admin-btn--sm">Search</button>
+      <?php if ($isSearch) : ?>
+        <a href="admin_history.php" class="admin-btn admin-btn--ghost admin-btn--sm">Clear</a>
+      <?php endif; ?>
     </form>
-</div>
-    <div class="row" id="cart-container">
-      <!-- <div class="col-md-3 cart-left"></div> -->
-      <div class="col-sm-6 col-md-12 col-xs-12 my-2 cart-main cart-middle">
-
-                  <!-- crt header -->
-                
-                <div class="container-fluid text-c" id="cart-head">
-                  <div class="row d-flex cart-head">
-                      <div class="col-2">
-                          <h5>customer Id</h5>
-                      </div>
-                      <div class="col-3">
-                          <h5>Product name</h5>
-                      </div>
-                      <div class="col-1">
-                          <h5>Quantity</h5>
-                      </div>
-                      <div class="col-1">
-                          <h5>Table No</h5>
-                      </div>
-                      <div class="col-3">
-                          <h5>Description</h5>
-                      </div>
-                      <div class="col-2">
-                          <h5>Time</h5>
-                      </div>
-                      
-                  </div>
-                </div> 
-                 
-                 <!-- cart-product  -->
-
-              <div class="container-fluid text-c" id="cart-head">
-                  
-              <?php
-                  $cid = $_SESSION['id']; 
-                  $qr = "select * from orders order by oreder_time DESC";
-                  $res = mysqli_query($conn,$qr);
-                  $nid = 1;
-                  while($orders = mysqli_fetch_assoc($res)) {
-                      $id = $orders['product_id'];
-                      $qr1 = "select product_name from products where product_id = $id";
-                      $nam = mysqli_query($conn,$qr1);
-                      $name = mysqli_fetch_array($nam);
-                      ?>
-                      <div class="row d-flex cart-head">
-                      
-                      <div class="col-2">
-                          <h5><?php echo $orders['customer_id']; ?></h5>
-                          
-                      </div>
-                      <div class="col-3">
-                          <h5><?php echo $name['product_name']; ?></h5>
-                      </div>
-                      <div class="col-1">
-                          <h5><?php echo $orders['qty']; ?></h5>
-                      </div>
-                      <div class="col-1">
-                          <h5><?php echo $orders['table_no']; ?></h5>
-                      </div>
-                      <div class="col-3">
-                          <h5><?php echo $orders['order_desc']; ?></h5>
-                      </div>
-                      <div class="col-3">
-                          <h5><?php echo $orders['oreder_time']; ?></h5>
-                      </div>
-                      
-             
-                  
-                </div> 
-                <?php } ?>
-                
-                
-
-                
-            
-                
-                <!-- cart-total  -->
-                <div class="row">
-                  <div class="col-3"></div>
-                  <div class="col-9">
-                    
-                          <div class="col-6">
-                            
-                           
-                          </div>
-                        </div>
-                      </div>
-                  </div>
-                </div>
+  </div>
+  <div class="admin-card__body">
+    <?php if ($isSearch && !$hasOrders) : ?>
+      <div class="admin-empty">
+        <p class="admin-empty__title">No orders found</p>
+        <p class="admin-empty__text">No order history exists for customer #<?php echo $searchCid; ?>.</p>
       </div>
-     
-     
-    </div>
-</header>
-    <?php }} // if(isset($_SESSION['ordered'])){
-    
-                            
-                            
-            
+    <?php elseif (!$hasOrders) : ?>
+      <div class="admin-empty">
+        <p class="admin-empty__title">No order history</p>
+        <p class="admin-empty__text">Completed and past orders will appear here.</p>
+      </div>
+    <?php else : ?>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Customer ID</th>
+              <th>Product</th>
+              <th>Qty</th>
+              <th>Table</th>
+              <th>Description</th>
+              <th>Status</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php while ($orders = mysqli_fetch_assoc($res)) :
+              $productName = admin_product_name($conn, (int) $orders['product_id']);
+              ?>
+              <tr>
+                <td data-label="Customer ID"><?php echo (int) $orders['customer_id']; ?></td>
+                <td data-label="Product"><?php echo htmlspecialchars($productName); ?></td>
+                <td data-label="Qty"><?php echo (int) $orders['qty']; ?></td>
+                <td data-label="Table"><?php echo (int) $orders['table_no']; ?></td>
+                <td data-label="Description"><?php echo htmlspecialchars($orders['order_desc']); ?></td>
+                <td data-label="Status"><?php echo admin_status_badge($orders['status']); ?></td>
+                <td data-label="Time"><?php echo htmlspecialchars($orders['oreder_time']); ?></td>
+              </tr>
+            <?php endwhile; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php endif; ?>
+  </div>
+</section>
 
-
-
-
-?>
- <script src="assets/js/function.js"></script>
-  <script src="assets/vendors/jquery/jquery-3.4.1.js"></script>
-    <script src="assets/vendors/bootstrap/bootstrap.bundle.js"></script>
-
-    <!-- bootstrap affix -->
-    <script src="assets/vendors/bootstrap/bootstrap.affix.js"></script>
-
-    <!-- wow.js -->
-    <script src="assets/vendors/wow/wow.js"></script>
-    
-    <!-- google maps -->
-    <!-- <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtme10pzgKSPeJVJrG1O3tjR6lk98o4w8&callback=initMap"></script> -->
-
-    <!-- FoodHut js -->
-    <script src="assets/js/foodhut.js"></script>
-</body>
-</html>
+<?php include 'assets/php/admin_footer.php'; ?>

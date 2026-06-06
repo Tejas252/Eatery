@@ -1,27 +1,33 @@
-.qty_form{
-    display: none;
-    max-width: 420px;
-    margin: 1.5rem auto 0;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    color: #f5f5f7;
+.qty_form {
+  display: none;
+  max-width: 420px;
+  margin: 1.5rem auto 0;
+  background: var(--eatery-surface);
+  border: 1px solid var(--eatery-border-strong);
+  border-radius: var(--eatery-radius-lg);
+  color: var(--eatery-text);
 }
 
 .qty_form .form-control {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.12);
-    color: #fff;
+  background: var(--eatery-surface-elevated);
+  border-color: var(--eatery-border-strong);
+  color: var(--eatery-text);
+}
+
+.qty_form .form-control:focus {
+  border-color: var(--eatery-border-focus);
+  box-shadow: var(--eatery-focus-ring);
 }
 
 .qty_form .form-label {
-    color: rgba(245, 245, 247, 0.72);
-    font-size: 0.85rem;
+  color: var(--eatery-text-secondary);
+  font-size: 0.85rem;
 }
 
-.show{
-    display: block;
+.show {
+  display: block;
 }
-.hide{
-    display: none;
+
+.hide {
+  display: none;
 }

@@ -1,5 +1,9 @@
 <?php
 
+if (!function_exists('product_page_url')) {
+    require_once __DIR__ . '/product_helpers.php';
+}
+
 function product_card_badge(array $product, int $index): string
 {
     if ($index === 0) {
@@ -24,8 +28,12 @@ function product_card_badge_label(string $badge): string
     return $labels[$badge] ?? '';
 }
 
-function render_product_card(array $product, int $index = 0): void
+function render_product_card(array $product, int $index = 0, array $options = []): void
 {
+    $layout = $options['layout'] ?? 'carousel';
+    $showRating = !empty($options['show_rating']);
+    $wrapperClass = $layout === 'grid' ? 'featured-menu__item' : 'product-carousel__slide';
+    $categorySlug = strtolower($product['product_type']) === 'burger' ? 'burger' : 'pizza';
     $badge = product_card_badge($product, $index);
     $badgeLabel = product_card_badge_label($badge);
     $type = htmlspecialchars(ucfirst(strtolower($product['product_type'])));
@@ -34,9 +42,22 @@ function render_product_card(array $product, int $index = 0): void
     $price = number_format((int) $product['product_price']);
     $img = htmlspecialchars($product['product_img']);
     $typeClass = strtolower($product['product_type']) === 'burger' ? 'burger' : 'pizza';
+    $productNo = (int) $product['product_no'];
+    $detailUrl = htmlspecialchars(product_page_url($productNo));
+    $ratingAvg = isset($product['rating_average']) ? (float) $product['rating_average'] : 4.5;
+    $ratingCount = isset($product['rating_count']) ? (int) $product['rating_count'] : 0;
+    $ratingLabel = $ratingCount > 0
+        ? number_format($ratingAvg, 1) . ' (' . $ratingCount . ')'
+        : number_format($ratingAvg, 1) . ' (New)';
     ?>
-    <div class="product-carousel__slide">
-        <article class="product-card">
+    <div
+        class="<?php echo htmlspecialchars($wrapperClass); ?>"
+        <?php if ($layout === 'grid') : ?>
+            data-category="<?php echo htmlspecialchars($categorySlug); ?>"
+        <?php endif; ?>
+    >
+        <article class="product-card<?php echo $layout === 'grid' ? ' product-card--menu-grid' : ''; ?>">
+            <a class="product-card__media-link" href="<?php echo $detailUrl; ?>" aria-label="View <?php echo $name; ?> details">
             <div class="product-card__media">
                 <?php if ($badge !== '') : ?>
                     <span class="product-card__badge product-card__badge--<?php echo $badge; ?>">
@@ -50,23 +71,43 @@ function render_product_card(array $product, int $index = 0): void
                     loading="lazy"
                 >
             </div>
+            </a>
             <div class="product-card__body">
                 <div class="product-card__meta">
                     <span class="product-card__category product-card__category--<?php echo $typeClass; ?>">
                         <?php echo $type; ?>
                     </span>
                 </div>
-                <h3 class="product-card__title"><?php echo $name; ?></h3>
+                <h3 class="product-card__title"><a href="<?php echo $detailUrl; ?>"><?php echo $name; ?></a></h3>
                 <p class="product-card__desc"><?php echo $desc; ?></p>
+                <?php if ($showRating) : ?>
+                    <div class="product-card__rating" aria-label="<?php echo htmlspecialchars($ratingLabel); ?> out of 5">
+                        <span class="product-card__stars">
+                            <?php for ($s = 1; $s <= 5; $s++) :
+                                $starClass = 'product-card__star';
+                                if ($ratingAvg >= $s) {
+                                    $starClass .= ' is-filled';
+                                } elseif ($ratingAvg >= ($s - 0.5)) {
+                                    $starClass .= ' is-half';
+                                }
+                            ?>
+                                <span class="<?php echo $starClass; ?>" aria-hidden="true">&#9733;</span>
+                            <?php endfor; ?>
+                        </span>
+                        <span class="product-card__rating-text"><?php echo htmlspecialchars($ratingLabel); ?></span>
+                    </div>
+                <?php endif; ?>
                 <div class="product-card__footer">
                     <div class="product-card__price">
                         <span class="product-card__price-label">Price</span>
                         <span class="product-card__price-value">&#8377;<?php echo $price; ?></span>
                     </div>
+                    <div class="product-card__actions">
+                    <a class="product-card__view" href="<?php echo $detailUrl; ?>">Details</a>
                     <button
                         type="button"
                         class="product-card__cta js-add-to-cart"
-                        data-product-no="<?php echo (int) $product['product_no']; ?>"
+                        data-product-no="<?php echo $productNo; ?>"
                         data-product-name="<?php echo $name; ?>"
                         data-product-price="<?php echo (int) $product['product_price']; ?>"
                         data-product-img="assets/uploads/<?php echo $img; ?>"
@@ -77,6 +118,7 @@ function render_product_card(array $product, int $index = 0): void
                         <span class="product-card__cta-icon">+</span>
                         <span class="product-card__cta-text">Add to Cart</span>
                     </button>
+                    </div>
                 </div>
             </div>
         </article>

@@ -1,42 +1,73 @@
-/* Made with love by Mutiullah Samim Login Changes 1234*/
-
-.form{
-    /* max-height: 1000px; */
-    /* height: auto; */
-    align-items: center;
-    color: white;
-}
-body{
-    /* background: rgba(0,0,0,0.5) url('../photo/bg_2.jpg') no-repeat; */
-    /* background-blend-mode: darken; */
-    /* background: rgba(0,0,0,0.7) url('../imgs/main.jpg') no-repeat; */
-    /* opacity: 10px; */
-}
-.logo{
-    /* text-align: center; */
-    /* height: 162px; */
-    width: 250px;   
-    margin: -8px 81px;
-}
-form h1{
-    text-align: center;
-    font-size: 33px;
-}
-form{
-    border: 2px solid white;
-    border-radius: 10px;
-}
-.btn1{
-    width: 100%;
-    text-align: center;
-}
-/* .logo3{
-    max-width: 100%;
-    margin: auto;
-} */
-
-.bgtr{
-    background: transparent;
+/* Login & signup page enhancements */
+.login-page,
+.signup-page {
+  min-height: 100vh;
+  background: var(--eatery-gradient-page);
+  font-family: var(--eatery-font);
 }
 
+.login-page form,
+.signup-page form {
+  border: 1px solid var(--eatery-border-strong) !important;
+  border-radius: var(--eatery-radius-lg) !important;
+  background: var(--eatery-surface);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--eatery-shadow-md);
+}
 
+.login-page form h1,
+.signup-page form h1 {
+  color: var(--eatery-text);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.login-page .form-control,
+.signup-page .form-control {
+  background: var(--eatery-input-bg);
+  border-color: var(--eatery-border-strong);
+  color: var(--eatery-text);
+  border-radius: var(--eatery-radius-md);
+  min-height: 46px;
+}
+
+.login-page .form-control:focus,
+.signup-page .form-control:focus {
+  background: var(--eatery-input-bg-focus);
+  border-color: var(--eatery-border-focus);
+  box-shadow: var(--eatery-focus-ring);
+  color: var(--eatery-text);
+}
+
+.login-page .btn-primary,
+.signup-page .btn-primary {
+  min-height: 46px;
+  border-radius: var(--eatery-radius-md);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.login-page a,
+.signup-page a {
+  color: var(--eatery-accent-light);
+  transition: color var(--eatery-transition);
+}
+
+.login-page a:hover,
+.signup-page a:hover {
+  color: var(--eatery-accent-muted);
+}
+
+.form {
+  align-items: center;
+  color: var(--eatery-text);
+}
+
+form {
+  border: 1px solid var(--eatery-border-strong);
+  border-radius: var(--eatery-radius-md);
+}
+
+.bgtr {
+  background: transparent;
+}

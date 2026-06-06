@@ -1,201 +1,173 @@
 <?php
+
 session_start();
-// include('data_insert_take.php');
-// include('assets/php.config.php');
+
+if (!isset($_SESSION['login']) || !isset($_SESSION['id'])) {
+    header('Location: ../../login.php');
+    exit;
+}
+
+require_once __DIR__ . '/cart_helpers.php';
+require_once __DIR__ . '/collection_helpers.php';
+require_once __DIR__ . '/book_table_helpers.php';
+
+clear_booking_session_if_logged_out();
+
+$collections = get_collections();
+$navHasActiveBooking = get_current_booking_from_session() !== null;
+
+$userId = (int) $_SESSION['id'];
+$username = $_SESSION['username'] ?? '';
+$fullName = $_SESSION['name'] ?? '';
+$mobile = isset($_SESSION['phone']) ? (string) $_SESSION['phone'] : '';
+$email = $_SESSION['email'] ?? '';
+$avatarInitial = strtoupper(substr($fullName !== '' ? $fullName : $username, 0, 1));
+$avatarImg = '../../assets/imgs/prof.jpg';
+$avatarFile = __DIR__ . '/../imgs/prof.jpg';
+$hasAvatarImage = is_file($avatarFile);
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Start your development with FoodHut landing page.">
-  <meta name="author" content="Devcrud">
-  <title>Eatery : Flavor For Royalty</title>
-  <link rel="icon" href="../imgs/logo3.png">
-
-  <!-- font icons -->
-  <link rel="stylesheet" href="../vendors/themify-icons/css/themify-icons.css">
-
-  <link rel="stylesheet" href="../vendors/animate/animate.css">
-
-  <!-- Bootstrap + FoodHut main styles -->
-  <link rel="stylesheet" href="../css/foodhut.css">
-  <link rel="stylesheet" href="../css/menu.css">
-  <link rel="stylesheet" href="../css/qty.css">
-  <link rel="stylesheet" href="../css/login.css">
-<style>
-   .te{
-    background: transparent;
-    border: none;
-   }
-</style>
-  <!-- <link rel="stylesheet" href="cart.css"> -->
+  <meta name="description" content="Manage your Eatery account profile">
+  <title>Eatery | My Profile</title>
+  <link rel="icon" href="../../assets/imgs/logo3.png">
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="stylesheet" href="../../assets/css/foodhut.css">
+  <link rel="stylesheet" href="../../assets/css/add-to-cart.css">
+  <link rel="stylesheet" href="../../assets/css/site-header.css">
+  <link rel="stylesheet" href="../../assets/css/profile.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
 </head>
+<body class="profile-body">
 
-<body data-spy="scroll" data-target=".navbar" data-offset="40" id="home">
-      <!-- Navbar -->
-      <nav class="custom-navbar navbar navbar-expand-lg navbar-dark fixed-top" data-spy="affix" data-offset-top="10">
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav">
-        <li class="nav-item">      
-          <input type="button" value="Home"  class="nav-link te"  href="" onclick="home(this.name)" name="../../index.php#Home">
-        </li>
-        <li class="nav-item">
-        <input type="button" value="Book-table"  class="nav-link te"  href="" onclick="home(this.name)" name="../../index.php#book-table">
-        </li>
-        <li class="nav-item">
-        <input type="button" value="Menu"  class="nav-link te"  href="" onclick="home(this.name)" name="../../index.php#Menu">
+  <?php
+    $navBase = '../../';
+    $navCollections = $collections;
+    $navActiveCollection = null;
+    include __DIR__ . '/site_header.php';
+  ?>
 
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#About">About</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="<?php if(isset($_SESSION['login'])){echo'../php/logout.php';}else{echo '../../login.php';} ?>"><?php if(isset($_SESSION['login'])){echo'Log-out';}else{echo 'Login';} ?></a>
-        </li>
-      </ul>
-      <a class="navbar-brand m-auto" href="#">
-        <img src="../imgs/logo3.png" class="brand-img" alt="" onclick="home(this.name)" name="../../index.php#Home">
-        <span class="brand-txt">Eatery</span>
-      </a>
-      <ul class="navbar-nav">
-       
-        <li class="nav-item cart-btn">
-          <a href="../../cart.php" class="btn btn-primary ml-xl-4 cart-btn"><img src="../imgs/cart.png" id="cart" alt=""srcset=""></a>
-          <a href="<?php if(isset($_SESSION['login'])){echo'../php/profile.php';}else{echo'../php/error.php';} ?>" class="btn btn-primary ml-xl-4 cart-btn"><img src="../imgs/user.png" id="cart" alt=""></a>
-        </li>
-      </ul>
-    </div>
-    </nav>
+  <main class="profile-page">
+    <div class="profile-page__inner">
 
+      <header class="profile-page__hero">
+        <span class="profile-page__eyebrow">Your Account</span>
+        <h1 class="profile-page__title">My Profile</h1>
+        <p class="profile-page__subtitle">View and manage your personal information and account details.</p>
+      </header>
 
-  <!-- header -->
+      <div class="profile-layout">
+        <aside class="profile-card profile-card--identity" aria-label="Profile summary">
+          <div class="profile-avatar">
+            <?php if ($hasAvatarImage) : ?>
+              <img class="profile-avatar__img" src="<?php echo htmlspecialchars($avatarImg); ?>" alt="Profile photo">
+            <?php else : ?>
+              <span class="profile-avatar__initial" aria-hidden="true"><?php echo htmlspecialchars($avatarInitial); ?></span>
+            <?php endif; ?>
+            <span class="profile-avatar__ring" aria-hidden="true"></span>
+          </div>
+          <h2 class="profile-identity__name"><?php echo htmlspecialchars($fullName !== '' ? $fullName : $username); ?></h2>
+          <p class="profile-identity__username">@<?php echo htmlspecialchars($username); ?></p>
+          <div class="profile-identity__badge">User ID &middot; <?php echo $userId; ?></div>
+          <nav class="profile-quick-links" aria-label="Account shortcuts">
+            <a class="profile-quick-links__item" href="history.php">
+              <span class="profile-quick-links__icon" aria-hidden="true">&#128203;</span>
+              Order History
+            </a>
+            <a class="profile-quick-links__item" href="../../index.php#book-table">
+              <span class="profile-quick-links__icon" aria-hidden="true">&#127869;</span>
+              Table Reservations
+              <?php if ($navHasActiveBooking) : ?>
+                <span class="profile-quick-links__pill">Active</span>
+              <?php endif; ?>
+            </a>
+          </nav>
+        </aside>
 
-  <!-- <header id="home" class="header">
-    <div class="overlay text-white text-center" id=>
-      <h1 class="display-2 font-weight-bold my-3">Eatery</h1>
-      <h2 class="display-4 mb-5"> Flavors for Royalty </h2>
-      <a class="btn btn-lg btn-primary" href="#Menu">View Our Menu</a>
-    </div>
-  </header> -->
-
-  <!-- <header id="home" class="header"> -->
-    <!-- <div class="overlay text-white text-center" id=> -->
-
-    <!-- header -->
-    <header id="home" class="header">
-    <div class="overlay text-white text-center" id=>
-    <div class="container rounded mt-5 mb-5" >
- <!-- <button class="btn profile-button ml-5 my-3" type="button"><a class="go_back" href="../../index.php#Home"> Go Back </a></button> -->
-    
-    <div class="row ">
-        <div class="col-md-3 ">
-            <div class="d-flex flex-column align-items-center text-center p-3 py-5"><img class="rounded-circle mt-5" width="150px" src="../imgs/prof.jpg"><span class="font-weight-bold  d " ><?php echo "ID:".$_SESSION['id']; ?></span></div>
-        </div>
-        <div class="col-md-5 ">
-            <div class="p-3 py-5">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="text-right">Profile Details</h4>
-                </div>
-                <!-- <div class="row mt-2">
-                    <div class="col-md-6"><label class="labels">Name</label><input type="text" class="form-control" placeholder="first name" value=""></div>
-                    <div class="col-md-6"><label class="labels">Surname</label><input type="text" class="form-control" value="" placeholder="surname"></div>
-                </div> -->
-                <div class="row mt-3">
-                    <div class="col-md-12">
-                        <label class="labels">Username</label>
-                        <input type="text" class="form-control" placeholder="username" value="<?php if(isset($_SESSION['username'])) { echo $_SESSION['username'];}else{echo 'Login';} ?>" readonly>
-                    </div>
-                    <div class="col-md-12">
-                        <label class="labels">Name</label>
-                        <input type="text" class="form-control" placeholder="name" value="<?php if(isset($_SESSION['name'])) { echo $_SESSION['name'];}else{echo 'Login';} ?>" readonly>
-                    </div>
-                    <div class="col-md-12">
-                        <label class="labels">Mobile Number</label>
-                        <input type="text" class="form-control" placeholder="enter phone number" value="<?php if(isset($_SESSION['phone'])) { echo $_SESSION['phone'];}else{echo 'Login';} ?>" readonly>
-                    </div>
-                        <!-- <div class="col-md-12"><label class="labels">Address Line 1</label><input type="text" class="form-control" placeholder="enter address line 1" value=""></div> -->
-                        <!-- <div class="col-md-12"><label class="labels">Address Line 2</label><input type="text" class="form-control" placeholder="enter address line 2" value=""></div> -->
-                        <!-- <div class="col-md-12"><label class="labels">Postcode</label><input type="text" class="form-control" placeholder="enter address line 2" value=""></div> -->
-                        <!-- <div class="col-md-12"><label class="labels">State</label><input type="text" class="form-control" placeholder="enter address line 2" value=""></div> -->
-                        <!-- <div class="col-md-12"><label class="labels">Area</label><input type="text" class="form-control" placeholder="enter address line 2" value=""></div> -->
-                    <div class="col-md-12">
-                        <label class="labels">Email ID</label>
-                        <input type="text" class="form-control" placeholder="enter email id" value="<?php if(isset($_SESSION['email'])) { echo $_SESSION['email'];}else{echo 'Login';} ?>"readonly>
-                    </div>
-                        <!-- <div class="col-md-12"><label class="labels">Education</label><input type="text" class="form-control" placeholder="education" value=""></div> -->
-                </div>
-                <!-- <div class="row mt-3">
-                    <div class="col-md-6"><label class="labels">Country</label><input type="text" class="form-control" placeholder="country" value=""></div>
-                    <div class="col-md-6"><label class="labels">State/Region</label><input type="text" class="form-control" value="" placeholder="state"></div>
-                </div> -->
-                <!-- <div class="mt-5 text-center">
-                    <button class="btn profile-button mr-5" type="button">Save Profile</button>
-                    <button class="btn profile-button ml-5" type="button">Edit Profile</button>
-
-                </div> -->
-                
+        <section class="profile-card profile-card--details" aria-label="Profile details">
+          <div class="profile-card__head">
+            <div>
+              <h2 class="profile-card__title">Profile Details</h2>
+              <p class="profile-card__desc">Your account information is shown below. Some fields cannot be changed online.</p>
             </div>
-        </div>
-        <!-- <div class="col-md-4">
-             <div class="p-3 py-5">
-                <div class="d-flex justify-content-between align-items-center experience"><span>Edit Experience</span><span class="border px-3 p-1 add-experience"><i class="fa fa-plus"></i>&nbsp;Experience</span></div><br>
-                <div class="col-md-12"><label class="labels">Experience in Designing</label><input type="text" class="form-control" placeholder="experience" value=""></div> <br>
-                <div class="col-md-12"><label class="labels">Additional Details</label><input type="text" class="form-control" placeholder="additional details" value=""></div>
-            </div> -->
-        <!-- </div> --> 
-    <!-- </div> -->
-</div>
-</div>
-</div>
-      
+            <button type="button" class="profile-edit-btn" id="profileEditBtn" aria-controls="profileForm">
+              <span class="profile-edit-btn__icon" aria-hidden="true">&#9998;</span>
+              Edit Profile
+            </button>
+          </div>
+
+          <form class="profile-form" id="profileForm" novalidate>
+            <div class="profile-form__grid">
+              <div class="profile-field profile-field--readonly">
+                <label class="profile-field__label" for="profileUserId">User ID</label>
+                <input class="profile-field__input" type="text" id="profileUserId" value="<?php echo $userId; ?>" readonly tabindex="-1">
+              </div>
+
+              <div class="profile-field profile-field--readonly">
+                <label class="profile-field__label" for="profileUsername">Username</label>
+                <input class="profile-field__input" type="text" id="profileUsername" name="username" value="<?php echo htmlspecialchars($username); ?>" readonly autocomplete="username">
+              </div>
+
+              <div class="profile-field">
+                <label class="profile-field__label" for="profileFullName">Full Name</label>
+                <input class="profile-field__input" type="text" id="profileFullName" name="full_name" value="<?php echo htmlspecialchars($fullName); ?>" readonly autocomplete="name">
+              </div>
+
+              <div class="profile-field">
+                <label class="profile-field__label" for="profileMobile">Mobile Number</label>
+                <input class="profile-field__input" type="tel" id="profileMobile" name="mobile" value="<?php echo htmlspecialchars($mobile); ?>" readonly inputmode="tel" autocomplete="tel">
+              </div>
+
+              <div class="profile-field profile-field--full profile-field--readonly">
+                <label class="profile-field__label" for="profileEmail">Email Address</label>
+                <input class="profile-field__input" type="email" id="profileEmail" name="email" value="<?php echo htmlspecialchars($email); ?>" readonly autocomplete="email">
+              </div>
+            </div>
+
+            <div class="profile-form__actions profile-form__actions--edit" id="profileEditActions" hidden>
+              <button type="button" class="profile-btn profile-btn--ghost" id="profileCancelBtn">Cancel</button>
+              <button type="submit" class="profile-btn profile-btn--primary" id="profileSaveBtn">
+                <span class="profile-btn__loader" aria-hidden="true"></span>
+                Save Changes
+              </button>
+            </div>
+
+            <p class="profile-form__message" id="profileFormMessage" role="status" hidden></p>
+          </form>
+        </section>
+      </div>
+
     </div>
-  </header>
-  <div class="container-fluid bg-dark text-light has-height-md middle-items border-top text-center wow fadeIn" id="About">
-    <div class="row">
-      <div class="col-sm-4">
-        <h3>EMAIL US</h3>
-        <P class="text-muted">info@website.com</P>
+  </main>
+
+  <footer class="profile-footer">
+    <div class="profile-footer__inner">
+      <div class="profile-footer__col">
+        <h3>Email</h3>
+        <p>Contact@eatery.com</p>
       </div>
-      <div class="col-sm-4">
-        <h3>CALL US</h3>
-        <P class="text-muted">(123) 456-7890</P>
+      <div class="profile-footer__col">
+        <h3>Call</h3>
+        <p>+91 9898252898</p>
       </div>
-      <div class="col-sm-4">
-        <h3>FIND US</h3>
-        <P class="text-muted">12345 Fake ST NoWhere AB Country</P>
+      <div class="profile-footer__col">
+        <h3>Visit</h3>
+        <p>111, Platinam hub, Noida</p>
       </div>
     </div>
-  </div>
+  </footer>
 
-  <!-- <script src="../js/function.js">
-   
-  </script> -->
-  <script src="../js/function.js"></script>
-    <!-- </div> -->
-  <!-- </header> -->
-  <!-- end of page footer -->
+  <div class="cart-toast-stack" id="cartToastStack" aria-live="polite" aria-atomic="true"></div>
 
-	<!-- core  -->
-  <script src="../vendors/jquery/jquery-3.4.1.js"></script>
-    <script src="../vendors/bootstrap/bootstrap.bundle.js"></script>
-
-    <!-- bootstrap affix -->
-    <script src="../vendors/bootstrap/bootstrap.affix.js"></script>
-
-    <!-- wow.js -->
-    <script src="../vendors/wow/wow.js"></script>
-    
-    <!-- google maps -->
-    <!-- <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtme10pzgKSPeJVJrG1O3tjR6lk98o4w8&callback=initMap"></script> -->
-
-    <!-- FoodHut js -->
-    <script src="../js/foodhut.js"></script>
-    </body>
+  <script src="../../assets/vendors/jquery/jquery-3.4.1.js"></script>
+  <script src="../../assets/vendors/bootstrap/bootstrap.bundle.js"></script>
+  <script src="../../assets/js/profile-menu.js"></script>
+  <script src="../../assets/js/profile-page.js"></script>
+</body>
 </html>

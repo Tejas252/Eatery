@@ -22,6 +22,7 @@ include('data_insert_take.php');
   <link rel="stylesheet" href="assets/vendors/animate/animate.css">
 
   <!-- Bootstrap + FoodHut main styles -->
+  <link rel="stylesheet" href="assets/css/theme.css">
   <link rel="stylesheet" href="assets/css/foodhut.css">
   <link rel="stylesheet" href="assets/css/menu.css">
   <link rel="stylesheet" href="assets/css/qty.css">

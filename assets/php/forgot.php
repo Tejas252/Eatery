@@ -22,6 +22,7 @@ session_start();
   <link rel="stylesheet" href="../vendors/animate/animate.css">
 
   <!-- Bootstrap + FoodHut main styles -->
+  <link rel="stylesheet" href="../css/theme.css">
   <link rel="stylesheet" href="../css/foodhut.css">
   <link rel="stylesheet" href="../css/menu.css">
   <link rel="stylesheet" href="../css/qty.css">

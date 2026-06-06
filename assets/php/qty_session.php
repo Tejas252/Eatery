@@ -5,14 +5,14 @@ session_start();
 require_once __DIR__ . '/cart_helpers.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../../index.php#Menu');
+    header('Location: ../../index.php#best-selling');
     exit;
 }
 
 if (isset($_POST['submit'])) {
     $conn = mysqli_connect('localhost', 'root', '', 'eatery');
     if (!$conn) {
-        echo "<script>alert('Server error. Please try again.'); window.location.href='../../index.php#Menu';</script>";
+        echo "<script>alert('Server error. Please try again.'); window.location.href='../../index.php#best-selling';</script>";
         exit;
     }
 
@@ -20,7 +20,7 @@ if (isset($_POST['submit'])) {
     $qty = isset($_POST['qty']) ? (int) $_POST['qty'] : 1;
     $result = add_product_to_cart($conn, $productNo, $qty);
     $message = addslashes($result['message']);
-    $target = '../../index.php#Menu';
+    $target = '../../index.php#best-selling';
 
     echo "<script>alert('{$message}'); window.location.href='{$target}';</script>";
     exit;

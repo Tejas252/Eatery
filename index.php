@@ -10,8 +10,18 @@ session_start();
 include('data_insert_take.php');
 require_once('assets/php/cart_helpers.php');
 require_once('assets/php/book_table_helpers.php');
+require_once('assets/php/collection_helpers.php');
+require_once('assets/php/collection_render.php');
 
 clear_booking_session_if_logged_out();
+
+$collections = get_collections();
+
+$bestSellingProducts = fetch_best_selling_products($conn, 8);
+$featuredMenuProducts = enrich_products_with_ratings(
+    $conn,
+    fetch_featured_menu_products($conn, 12)
+);
 
 $bookMaxGuests = book_table_max_guests($conn);
 $bookCurrentGuests = isset($_SESSION['guest']) ? (int) $_SESSION['guest'] : 2;
@@ -32,7 +42,7 @@ if ($hasActiveBooking) {
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="Start your development with FoodHut landing page.">
     <meta name="author" content="Devcrud">
-    <title>FoodHut | Free Bootstrap 4.3.x template</title>
+    <title>Eatery | Restaurant &amp; Online Ordering</title>
    
     <!-- font icons -->
     <link rel="stylesheet" href="assets/vendors/themify-icons/css/themify-icons.css">
@@ -40,10 +50,15 @@ if ($hasActiveBooking) {
     <link rel="stylesheet" href="assets/vendors/animate/animate.css">
 
     <!-- Bootstrap + FoodHut main styles -->
+	<link rel="stylesheet" href="assets/css/theme.css">
 	<link rel="stylesheet" href="assets/css/foodhut.css">
   <link rel="stylesheet" href="assets/css/menu.css">
+  <link rel="stylesheet" href="assets/css/collections.css">
+  <link rel="stylesheet" href="assets/css/featured-menu.css">
   <link rel="stylesheet" href="assets/css/add-to-cart.css">
+  <link rel="stylesheet" href="assets/css/site-header.css">
   <link rel="stylesheet" href="assets/css/book-table.css">
+  <link rel="stylesheet" href="assets/css/about.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
@@ -54,61 +69,54 @@ if ($hasActiveBooking) {
     }
     .menu-section,
     .menu-section .product-card,
-    .menu-section .menu-category__title {
+    .collections-home,
+    .collection-section,
+    .featured-menu,
+    .home-hero {
       font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
   </style>
 </head>
 <body data-spy="scroll" data-target=".navbar" data-offset="40" id="home">
     
-    <!-- Navbar -->
-    <nav class="custom-navbar navbar navbar-expand-lg navbar-dark fixed-top" data-spy="affix" data-offset-top="10">
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav">
-        <li class="nav-item">
-          <a class="nav-link" href="#home">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#book-table">Book-Table</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#Menu">Menu</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#about">About</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="<?php if(isset($_SESSION['login'])){echo'assets/php/logout.php';}else{echo 'login.php';} ?>"><?php if(isset($_SESSION['login'])){echo'Log-out';}else{echo 'Login';} ?></a>
-        </li>
-      </ul>
-      <a class="navbar-brand m-auto" href="#">
-        <img src="assets/imgs/logo3.png" class="brand-img" alt="">
-        <span class="brand-txt">Eatery</span>
-      </a>
-      <ul class="navbar-nav">
-       
-        <li class="nav-item cart-btn">
-          <a href="cart.php" class="btn btn-primary ml-xl-4 cart-btn cart-link" aria-label="View cart">
-            <img src="assets/imgs/cart.png" class="nav-cart-icon" alt="">
-            <span class="cart-badge<?php echo get_cart_item_count() > 0 ? '' : ' is-empty'; ?>" id="cart-count"><?php echo get_cart_item_count(); ?></span>
-          </a>
-          <a href="<?php if(isset($_SESSION['login'])){echo'assets/php/profile.php';}else{echo'assets/php/error.php';} ?>" class="btn btn-primary ml-xl-4 cart-btn"><img src="assets/imgs/user.png" class="nav-cart-icon" alt=""></a>
-        </li> 
-      </ul>
+    <?php
+      $navBase = '';
+      $navCollections = $collections;
+      $navActiveCollection = null;
+      $navHasActiveBooking = $hasActiveBooking;
+      include('assets/php/site_header.php');
+    ?>
+    <!-- Hero -->
+    <header id="home" class="home-hero">
+      <div class="home-hero__inner wow fadeIn">
+        <span class="home-hero__eyebrow">Welcome to Eatery</span>
+        <h1 class="home-hero__title">Flavors for Royalty</h1>
+        <p class="home-hero__text">Discover our best-selling dishes and curated collections — from handcrafted pizzas to signature burgers, made fresh and served with care.</p>
+        <div class="home-hero__actions">
+          <a class="home-hero__btn home-hero__btn--primary" href="#best-selling">Best Sellers</a>
+          <a class="home-hero__btn home-hero__btn--ghost" href="#featured-menu">Browse Menu</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="collections-home">
+      <div class="collections-home__inner">
+        <?php
+          render_collection_carousel_section([
+            'carousel_id' => 'best-selling',
+            'section_id' => 'best-selling',
+            'title' => 'Best Selling',
+            'eyebrow' => 'Customer Favorites',
+            'description' => 'Our most ordered dishes, loved by guests and perfect for your next visit.',
+            'theme' => 'bestselling',
+            'cta_url' => collection_page_url('pizza'),
+            'cta_label' => 'Explore Collections',
+          ], $bestSellingProducts);
+        ?>
+      </div>
     </div>
-    </nav>
-    <!-- header -->
-    <header id="home" class="header">
-    <div class="overlay text-white text-center" id=>
-      <!-- <h1 class="display-2 font-weight-bold my-3">Eatery</h1> -->
-      <h2 class="display-4 mb-3"> Flavors for Royalty </h2>
-      <p class="display-5 mb-5 w-50 text-justify font-italic font-weight-normal">Welcome to Eatery, where we serve delicious food with impeccable service in a warm and inviting atmosphere. Our menu features a wide variety of dishes inspired by global cuisine, ranging from traditional favorites to modern interpretations. Whether you are in the mood for something savory or sweet, we have something for everyone.</p>
-      <a class="btn btn-lg btn-primary" href="#Menu">View Our Menu</a>
-    </div>
-  </header>
+
+    <?php render_featured_menu_section($conn, $featuredMenuProducts); ?>
 
   <section
     class="book-table-section"
@@ -188,7 +196,7 @@ if ($hasActiveBooking) {
             <span data-field="guests"><?php echo $hasActiveBooking ? (int) $bookCurrentBooking['guests'] . ' guest' . ((int) $bookCurrentBooking['guests'] === 1 ? '' : 's') : ''; ?></span>
             <span class="book-table-active__badge" data-field="status"><?php echo $hasActiveBooking ? 'Confirmed' : ''; ?></span>
           </p>
-          <a class="book-table-active__link" href="#Menu">Browse Menu</a>
+          <a class="book-table-active__link" href="#featured-menu">Browse Menu</a>
         </div>
       </div>
     </div>
@@ -196,73 +204,7 @@ if ($hasActiveBooking) {
 
 
 
-  
-  <div class="d-flex flex-column">
-
-    <!--  Menu Section  -->
-    <div id="Menu" class="text-center bg-dark text-light has-height-md middle-items wow fadeIn">
-    <h2 class="my-3">OUR MENU</h2>
-  </div>
-  
-    <?php include('assets/php/product_card.php'); ?>
-
-    <div class="menu-section">
-      <div class="menu-section__inner">
-        <?php
-          render_product_carousel(
-            'pizza',
-            'Pizza',
-            'Handcrafted Favorites',
-            "SELECT * FROM products WHERE LOWER(product_type) = 'pizza' AND product_qty > 0 ORDER BY product_no ASC",
-            $conn
-          );
-
-          render_product_carousel(
-            'burger',
-            'Burgers',
-            'Signature Classics',
-            "SELECT * FROM products WHERE LOWER(product_type) = 'burger' AND product_qty > 0 ORDER BY product_no ASC",
-            $conn,
-            true
-          );
-        ?>
-      </div>
-    </div>
-        <script>
-          function shw(i) {
-            var carousel = document.getElementById(i);
-            var section = document.getElementById(i + '-section');
-            if (carousel) {
-              carousel.classList.toggle('hide');
-            }
-            if (section) {
-              section.classList.toggle('is-collapsed');
-              var toggle = section.querySelector('.menu-category__toggle');
-              if (toggle) {
-                toggle.setAttribute('aria-expanded', section.classList.contains('is-collapsed') ? 'false' : 'true');
-              }
-            }
-          }
-        </script>
-
-  </div>
-  
-  <!--  About Section  -->
-  <div id="about" class="container-fluid wow fadeIn" id="about" data-wow-duration="1.5s">
-    <div class="row">
-      <!-- <div class="col-lg-6 has-img-bg"></div> -->
-      <div class="col">
-        <div class="row justify-content-center">
-          <div class="col-sm-8 py-5 my-5">
-            <!-- <div class="col-11"> -->
-            <h2 class="mb-4">About Us</h2>
-            <p>Back in 1954, a man named Ray Kroc discovered a small burger restaurant in California, and wrote the first page of our history. From humble beginnings as a small restaurant, we're proud to have become one of the world's leading food service brands with more than 36,000 restaurants in more than 100 countries</p>
-
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <?php include('assets/php/about_section.php'); ?>
 
 
   
@@ -304,8 +246,11 @@ if ($hasActiveBooking) {
     <!-- FoodHut js -->
     <script src="assets/js/foodhut.js"></script>
     <script src="assets/js/menu-carousel.js"></script>
+    <script src="assets/js/featured-menu.js"></script>
     <script src="assets/js/add-to-cart.js"></script>
+    <script src="assets/js/profile-menu.js"></script>
     <script src="assets/js/book-table.js"></script>
+    <script src="assets/js/about.js"></script>
 
 </body>
 </html>

@@ -5,6 +5,13 @@ session_start();
 include('data_insert_take.php');
 
 require_once('assets/php/cart_helpers.php');
+require_once('assets/php/collection_helpers.php');
+require_once('assets/php/book_table_helpers.php');
+
+clear_booking_session_if_logged_out();
+
+$collections = get_collections();
+$navHasActiveBooking = get_current_booking_from_session() !== null;
 
 
 
@@ -178,11 +185,13 @@ function cart_status_label(string $status): string
 
   <link rel="stylesheet" href="assets/vendors/themify-icons/css/themify-icons.css">
 
+  <link rel="stylesheet" href="assets/css/theme.css">
   <link rel="stylesheet" href="assets/css/foodhut.css">
 
   <link rel="stylesheet" href="assets/css/cart.css">
 
   <link rel="stylesheet" href="assets/css/add-to-cart.css">
+  <link rel="stylesheet" href="assets/css/site-header.css">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
 
@@ -196,85 +205,12 @@ function cart_status_label(string $status): string
 
 
 
-  <nav class="cart-nav navbar navbar-expand-lg navbar-dark fixed-top">
-
-    <div class="cart-nav__inner">
-
-      <a class="cart-nav__brand" href="index.php">
-
-        <img src="assets/imgs/logo3.png" alt="Eatery" class="cart-nav__logo">
-
-        <span class="cart-nav__name">Eatery</span>
-
-      </a>
-
-
-
-      <button class="navbar-toggler cart-nav__toggler" type="button" data-toggle="collapse" data-target="#cartNavMenu" aria-label="Toggle navigation">
-
-        <span class="navbar-toggler-icon"></span>
-
-      </button>
-
-
-
-      <div class="collapse navbar-collapse" id="cartNavMenu">
-
-        <ul class="navbar-nav cart-nav__links">
-
-          <li class="nav-item"><a class="nav-link" href="index.php#home">Home</a></li>
-
-          <li class="nav-item"><a class="nav-link" href="index.php#book-table">Book Table</a></li>
-
-          <li class="nav-item"><a class="nav-link" href="index.php#Menu">Menu</a></li>
-
-          <li class="nav-item"><a class="nav-link" href="index.php#about">About</a></li>
-
-        </ul>
-
-
-
-        <ul class="navbar-nav cart-nav__actions">
-
-          <li class="nav-item">
-
-            <a href="cart.php" class="cart-nav__icon-btn cart-link" aria-label="View cart">
-
-              <img src="assets/imgs/cart.png" class="nav-cart-icon" alt="">
-
-              <span class="cart-badge<?php echo get_cart_item_count() > 0 ? '' : ' is-empty'; ?>" id="cart-count"><?php echo get_cart_item_count(); ?></span>
-
-            </a>
-
-          </li>
-
-          <li class="nav-item">
-
-            <a href="<?php echo isset($_SESSION['login']) ? 'assets/php/profile.php' : 'login.php'; ?>" class="cart-nav__icon-btn" aria-label="Account">
-
-              <img src="assets/imgs/user.png" class="nav-cart-icon" alt="">
-
-            </a>
-
-          </li>
-
-          <li class="nav-item">
-
-            <a href="<?php echo isset($_SESSION['login']) ? 'assets/php/logout.php' : 'login.php'; ?>" class="cart-nav__auth">
-
-              <?php echo isset($_SESSION['login']) ? 'Log out' : 'Login'; ?>
-
-            </a>
-
-          </li>
-
-        </ul>
-
-      </div>
-
-    </div>
-
-  </nav>
+  <?php
+    $navBase = '';
+    $navCollections = $collections;
+    $navActiveCollection = null;
+    include('assets/php/site_header.php');
+  ?>
 
 
 
@@ -360,7 +296,7 @@ function cart_status_label(string $status): string
 
               <a href="assets/php/history.php" class="cart-order-success__btn cart-order-success__btn--primary">View Order History</a>
 
-              <a href="index.php#Menu" class="cart-order-success__btn cart-order-success__btn--ghost">Order More</a>
+              <a href="index.php#best-selling" class="cart-order-success__btn cart-order-success__btn--ghost">Order More</a>
 
             </div>
 
@@ -386,7 +322,7 @@ function cart_status_label(string $status): string
 
           <p class="cart-empty__text">Browse our pizzas, burgers, and chef specials. Your favorites are just a few clicks away.</p>
 
-          <a href="index.php#Menu" class="cart-empty__btn">Explore Menu</a>
+          <a href="index.php#best-selling" class="cart-empty__btn">Explore Menu</a>
 
         </section>
 
@@ -514,7 +450,7 @@ function cart_status_label(string $status): string
 
               <div class="cart-summary__links">
 
-                <a href="index.php#Menu" class="cart-summary__link">Continue shopping</a>
+                <a href="index.php#best-selling" class="cart-summary__link">Continue shopping</a>
 
               </div>
 
@@ -579,6 +515,7 @@ function cart_status_label(string $status): string
   <?php if ($showCart) : ?>
 
     <script src="assets/js/cart-page.js"></script>
+    <script src="assets/js/profile-menu.js"></script>
 
   <?php endif; ?>
 
