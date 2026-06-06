@@ -2,28 +2,22 @@
 
 function history_status_meta(string $status): array
 {
-    $status = strtolower(trim($status));
+    require_once __DIR__ . '/order_helpers.php';
+    $meta = order_status_meta($status);
 
-    $map = [
-        'ordered' => ['label' => 'Pending', 'class' => 'pending'],
-        'accepted' => ['label' => 'Processing', 'class' => 'processing'],
-        'deliverd' => ['label' => 'Processing', 'class' => 'processing'],
-        'done' => ['label' => 'Completed', 'class' => 'completed'],
-        'cancelled' => ['label' => 'Cancelled', 'class' => 'cancelled'],
-    ];
-
-    return $map[$status] ?? ['label' => ucfirst($status), 'class' => 'pending'];
+    return ['label' => $meta['label'], 'class' => $meta['class']];
 }
 
 function history_payment_meta(string $status): array
 {
-    $status = strtolower(trim($status));
+    require_once __DIR__ . '/order_helpers.php';
+    $normalized = order_normalize_status($status);
 
-    if ($status === 'done') {
+    if ($normalized === 'done') {
         return ['label' => 'Paid', 'class' => 'paid'];
     }
 
-    if ($status === 'cancelled') {
+    if ($normalized === 'cancelled') {
         return ['label' => 'Refunded', 'class' => 'refunded'];
     }
 
@@ -33,7 +27,7 @@ function history_payment_meta(string $status): array
 function fetch_customer_orders(mysqli $conn, int $customerId): array
 {
     $stmt = $conn->prepare(
-        'SELECT o.order_id, o.product_id, o.qty, o.order_desc, o.table_no,
+        'SELECT o.order_id, o.customer_id, o.product_id, o.qty, o.order_desc, o.table_no,
                 o.oreder_time, o.status, o.total,
                 p.product_name, p.product_price, p.product_img, p.product_type
          FROM orders o
@@ -57,23 +51,28 @@ function fetch_customer_orders(mysqli $conn, int $customerId): array
 
 function group_order_rows(array $rows): array
 {
+    require_once __DIR__ . '/order_helpers.php';
     $groups = [];
 
     foreach ($rows as $row) {
-        $key = $row['oreder_time'] . '|' . $row['table_no'] . '|' . strtolower($row['status']);
+        $key = (int) $row['customer_id'] . '|' . $row['oreder_time'] . '|' . (int) $row['table_no'];
 
         if (!isset($groups[$key])) {
             $groups[$key] = [
                 'order_number' => (int) $row['order_id'],
                 'order_time' => $row['oreder_time'],
                 'table_no' => (int) $row['table_no'],
-                'status' => $row['status'],
+                'status' => order_normalize_status((string) $row['status']),
                 'total' => (int) $row['total'],
                 'items' => [],
             ];
         }
 
         $groups[$key]['order_number'] = min($groups[$key]['order_number'], (int) $row['order_id']);
+
+        if (order_status_priority((string) $row['status']) > order_status_priority($groups[$key]['status'])) {
+            $groups[$key]['status'] = order_normalize_status((string) $row['status']);
+        }
 
         $price = (int) ($row['product_price'] ?? 0);
         $qty = (int) ($row['qty'] ?? 0);

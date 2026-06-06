@@ -19,7 +19,7 @@ function admin_nav_items(): array
             'icon' => 'inbox',
         ],
         'deliver' => [
-            'label' => 'Deliver Orders',
+            'label' => 'Active Orders',
             'url' => 'admin_ord.php',
             'icon' => 'truck',
         ],
@@ -77,6 +77,7 @@ function admin_dashboard_stats(mysqli $conn): array
     return [
         'pending' => admin_count_query($conn, "SELECT COUNT(*) FROM orders WHERE status = 'ordered'"),
         'accepted' => admin_count_query($conn, "SELECT COUNT(*) FROM orders WHERE status = 'accepted'"),
+        'preparing' => admin_count_query($conn, "SELECT COUNT(*) FROM orders WHERE status = 'preparing'"),
         'delivering' => admin_count_query($conn, "SELECT COUNT(*) FROM orders WHERE status = 'deliverd'"),
         'completed' => admin_count_query($conn, "SELECT COUNT(*) FROM orders WHERE status = 'done'"),
         'products' => admin_count_query($conn, 'SELECT COUNT(*) FROM products'),
@@ -87,28 +88,16 @@ function admin_dashboard_stats(mysqli $conn): array
 
 function admin_product_name(mysqli $conn, int $productId): string
 {
-    $productId = (int) $productId;
-    $result = mysqli_query($conn, "SELECT product_name FROM products WHERE product_id = $productId LIMIT 1");
-    if (!$result) {
-        return 'Unknown product';
-    }
-    $row = mysqli_fetch_assoc($result);
-    return $row['product_name'] ?? 'Unknown product';
+    require_once __DIR__ . '/order_helpers.php';
+    return order_fetch_product_name($conn, $productId);
 }
 
 function admin_status_badge(string $status): string
 {
-    $key = strtolower(trim($status));
-    $map = [
-        'ordered' => ['label' => 'Pending', 'class' => 'pending'],
-        'accepted' => ['label' => 'Accepted', 'class' => 'accepted'],
-        'deliverd' => ['label' => 'Delivering', 'class' => 'delivering'],
-        'delivered' => ['label' => 'Delivered', 'class' => 'delivering'],
-        'done' => ['label' => 'Completed', 'class' => 'done'],
-    ];
-    $meta = $map[$key] ?? ['label' => ucfirst($status), 'class' => 'default'];
+    require_once __DIR__ . '/order_helpers.php';
+    $meta = order_status_meta($status);
 
-    return '<span class="admin-badge admin-badge--' . htmlspecialchars($meta['class']) . '">'
+    return '<span class="admin-badge admin-badge--' . htmlspecialchars($meta['admin_class']) . '">'
         . htmlspecialchars($meta['label']) . '</span>';
 }
 
@@ -144,6 +133,9 @@ function admin_table_status_badge(string $status): string
     $key = strtolower(trim($status));
     if ($key === 'non' || $key === 'available') {
         return '<span class="admin-badge admin-badge--success">Available</span>';
+    }
+    if ($key === 'res' || $key === 'reserved') {
+        return '<span class="admin-badge admin-badge--warning">Reserved</span>';
     }
     if ($key === 'booked' || $key === 'occupied') {
         return '<span class="admin-badge admin-badge--warning">Occupied</span>';

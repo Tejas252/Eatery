@@ -30,7 +30,7 @@ include 'assets/php/admin_header.php';
       </div>
     <?php else : ?>
       <div class="admin-table-wrap">
-        <table class="admin-table">
+        <table class="admin-table admin-table--customers">
           <thead>
             <tr>
               <th>ID</th>

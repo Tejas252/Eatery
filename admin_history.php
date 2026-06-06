@@ -7,32 +7,32 @@ $adminPageSubtitle = 'Search and browse all past orders';
 $adminActiveNav = 'history';
 
 require_once 'assets/php/admin_helpers.php';
+require_once 'assets/php/order_helpers.php';
 
 $isSearch = $_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search']) && isset($_GET['cid']);
 $searchCid = $isSearch ? (int) $_GET['cid'] : 0;
 
 if ($isSearch) {
-    $qr = "SELECT * FROM orders WHERE customer_id = $searchCid ORDER BY oreder_time DESC";
+    $rows = order_fetch_rows($conn, "customer_id = $searchCid", 'ORDER BY oreder_time DESC, order_id DESC');
 } else {
-    $qr = 'SELECT * FROM orders ORDER BY oreder_time DESC';
+    $rows = order_fetch_rows($conn, '1=1', 'ORDER BY oreder_time DESC, order_id DESC');
 }
 
-$res = mysqli_query($conn, $qr);
-$hasOrders = $res && mysqli_num_rows($res) > 0;
+$hasOrders = count($rows) > 0;
 
 include 'assets/php/admin_header.php';
 ?>
 
 <section class="admin-card">
-  <div class="admin-card__header">
+  <div class="admin-card__header admin-card__header--stack">
     <h2 class="admin-card__title">
       <?php echo $isSearch ? 'Search Results · Customer #' . $searchCid : 'All Orders'; ?>
     </h2>
-    <form action="" method="get" class="admin-search">
+    <form action="" method="get" class="admin-search admin-search--inline">
       <input
         type="number"
         name="cid"
-        class="admin-input"
+        class="admin-input admin-input--search"
         placeholder="Customer ID"
         value="<?php echo $isSearch ? $searchCid : ''; ?>"
         min="1"
@@ -58,7 +58,7 @@ include 'assets/php/admin_header.php';
       </div>
     <?php else : ?>
       <div class="admin-table-wrap">
-        <table class="admin-table">
+        <table class="admin-table admin-table--history">
           <thead>
             <tr>
               <th>Customer ID</th>
@@ -71,19 +71,17 @@ include 'assets/php/admin_header.php';
             </tr>
           </thead>
           <tbody>
-            <?php while ($orders = mysqli_fetch_assoc($res)) :
-              $productName = admin_product_name($conn, (int) $orders['product_id']);
-              ?>
+            <?php foreach ($rows as $order) : ?>
               <tr>
-                <td data-label="Customer ID"><?php echo (int) $orders['customer_id']; ?></td>
-                <td data-label="Product"><?php echo htmlspecialchars($productName); ?></td>
-                <td data-label="Qty"><?php echo (int) $orders['qty']; ?></td>
-                <td data-label="Table"><?php echo (int) $orders['table_no']; ?></td>
-                <td data-label="Description"><?php echo htmlspecialchars($orders['order_desc']); ?></td>
-                <td data-label="Status"><?php echo admin_status_badge($orders['status']); ?></td>
-                <td data-label="Time"><?php echo htmlspecialchars($orders['oreder_time']); ?></td>
+                <td data-label="Customer ID"><?php echo (int) $order['customer_id']; ?></td>
+                <td data-label="Product"><?php echo htmlspecialchars(order_fetch_product_name($conn, (int) $order['product_id'])); ?></td>
+                <td data-label="Qty"><?php echo (int) $order['qty']; ?></td>
+                <td data-label="Table"><?php echo (int) $order['table_no']; ?></td>
+                <td data-label="Description"><?php echo htmlspecialchars($order['order_desc']); ?></td>
+                <td data-label="Status"><?php echo admin_status_badge($order['status']); ?></td>
+                <td data-label="Time"><?php echo htmlspecialchars($order['oreder_time']); ?></td>
               </tr>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
           </tbody>
         </table>
       </div>

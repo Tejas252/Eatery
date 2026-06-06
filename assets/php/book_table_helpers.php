@@ -13,7 +13,8 @@ function book_table_max_guests(mysqli $conn): int
 function book_table_occupied_numbers(mysqli $conn): array
 {
     $occupied = [];
-    $query = "SELECT DISTINCT table_no FROM orders WHERE status IN ('ordered', 'accepted', 'Deliverd')";
+    $query = "SELECT DISTINCT table_no FROM orders
+              WHERE LOWER(TRIM(status)) IN ('ordered', 'accepted', 'preparing', 'pending')";
     $result = mysqli_query($conn, $query);
 
     if ($result) {

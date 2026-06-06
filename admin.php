@@ -3,35 +3,35 @@ include 'assets/php/config.php';
 session_start();
 
 $adminPageTitle = 'Accept Orders';
-$adminPageSubtitle = 'Review pending orders and update their status';
+$adminPageSubtitle = 'Review new orders and accept them for preparation';
 $adminActiveNav = 'accept';
 
 require_once 'assets/php/admin_helpers.php';
+require_once 'assets/php/order_helpers.php';
 
 include 'assets/php/admin_header.php';
 
-$qr = "SELECT * FROM orders WHERE status = 'ordered' ORDER BY customer_id ASC, order_id ASC";
-$res = mysqli_query($conn, $qr);
-$hasOrders = $res && mysqli_num_rows($res) > 0;
-$nid = 1;
+$rows = order_fetch_rows($conn, "status = 'ordered'");
+$hasOrders = count($rows) > 0;
+$previousBatchKey = null;
 ?>
 
 <section class="admin-card">
   <div class="admin-card__header">
-    <h2 class="admin-card__title">Pending Orders</h2>
+    <h2 class="admin-card__title">New Orders</h2>
     <?php if ($hasOrders) : ?>
-      <span class="admin-badge admin-badge--pending"><?php echo (int) mysqli_num_rows($res); ?> items</span>
+      <span class="admin-badge admin-badge--pending"><?php echo count($rows); ?> items</span>
     <?php endif; ?>
   </div>
   <div class="admin-card__body">
     <?php if (!$hasOrders) : ?>
       <div class="admin-empty">
-        <p class="admin-empty__title">No pending orders</p>
-        <p class="admin-empty__text">New customer orders will appear here for acceptance.</p>
+        <p class="admin-empty__title">No new orders</p>
+        <p class="admin-empty__text">Incoming customer orders will appear here for acceptance.</p>
       </div>
     <?php else : ?>
       <div class="admin-table-wrap">
-        <table class="admin-table">
+        <table class="admin-table admin-table--accept-orders">
           <thead>
             <tr>
               <th>Customer ID</th>
@@ -40,41 +40,31 @@ $nid = 1;
               <th>Table</th>
               <th>Description</th>
               <th>Status</th>
-              <th>Actions</th>
+              <th class="admin-table__actions-col">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <?php while ($orders = mysqli_fetch_assoc($res)) :
-              $productName = admin_product_name($conn, (int) $orders['product_id']);
-              $showActions = $orders['customer_id'] != $nid;
+            <?php foreach ($rows as $order) :
+              $showActions = order_is_first_in_batch($order, $previousBatchKey);
+              $previousBatchKey = order_batch_key($order);
+              $transitions = order_allowed_transitions($order['status']);
               ?>
-              <tr>
-                <td data-label="Customer ID"><?php echo (int) $orders['customer_id']; ?></td>
-                <td data-label="Product"><?php echo htmlspecialchars($productName); ?></td>
-                <td data-label="Qty"><?php echo (int) $orders['qty']; ?></td>
-                <td data-label="Table"><?php echo (int) $orders['table_no']; ?></td>
-                <td data-label="Description"><?php echo htmlspecialchars($orders['order_desc']); ?></td>
-                <td data-label="Status"><?php echo admin_status_badge($orders['status']); ?></td>
+              <tr class="<?php echo $showActions ? 'admin-table__row--batch-start' : 'admin-table__row--batch-item'; ?>">
+                <td data-label="Customer ID"><?php echo (int) $order['customer_id']; ?></td>
+                <td data-label="Product"><?php echo htmlspecialchars(order_fetch_product_name($conn, (int) $order['product_id'])); ?></td>
+                <td data-label="Qty"><?php echo (int) $order['qty']; ?></td>
+                <td data-label="Table"><?php echo (int) $order['table_no']; ?></td>
+                <td data-label="Description"><?php echo htmlspecialchars($order['order_desc'] ?: '—'); ?></td>
+                <td data-label="Status"><?php echo admin_status_badge($order['status']); ?></td>
                 <td class="admin-table__actions-cell" data-label="Actions">
-                  <?php if ($showActions) : ?>
-                    <form action="assets/php/manage_order.php" method="post" class="admin-inline-form">
-                      <select name="status" class="admin-select admin-select--sm" aria-label="Update order status">
-                        <option value="accepted">Accepted</option>
-                        <option value="done">Done</option>
-                        <option value="Ordered">Ordered</option>
-                      </select>
-                      <input type="hidden" name="id" value="<?php echo (int) $orders['customer_id']; ?>">
-                      <input type="hidden" name="order_id" value="<?php echo (int) $orders['order_id']; ?>">
-                      <input type="hidden" name="table_no" value="<?php echo (int) $orders['table_no']; ?>">
-                      <button type="submit" name="change" class="admin-btn admin-btn--primary admin-btn--sm">Update</button>
-                    </form>
-                  <?php else : ?>
+                  <?php if ($showActions && $transitions) :
+                    render_admin_order_actions($order, $transitions, '../../admin.php');
+                  else : ?>
                     <span class="admin-table__muted">—</span>
                   <?php endif; ?>
                 </td>
               </tr>
-              <?php $nid = $orders['customer_id']; ?>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
           </tbody>
         </table>
       </div>

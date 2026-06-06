@@ -1,113 +1,117 @@
 <?php
-include 'config.php';
 session_start();
-$nid = 0;
-if($_SERVER["REQUEST_METHOD"]=="POST"){
 
-    if(isset($_POST['order'])){
-      
-        if(isset($_SESSION['id']) && isset($_SESSION['table'])){
-            $id = $_SESSION['id'];
-            $desc = $_POST['order_desc'];
-            $table_no = $_SESSION['table'];
-            $status = $_POST['status'];
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/order_helpers.php';
 
-            if(isset($_SESSION['cart'])){
-                $arcol = count($_SESSION['cart']);
-                if($arcol > 0){
-                  $orderOk = true;
-                  foreach($_SESSION['cart'] as $key => $value){
-
-                    $pro_no = $value['no'];
-                    $name = "qty_".$pro_no;
-                    $qty = $_POST[$name];
-                    $total = $_POST['total'];
-
-                    $qrr = "insert into orders (customer_id,product_id,qty,order_desc,table_no,status,total) values ($id,$pro_no,$qty,'$desc','$table_no','$status',$total)";
-                    $res = mysqli_query($conn,$qrr);
-
-                    $qrr1 = "update products set product_qty = product_qty-$qty where product_no = $pro_no";
-                    mysqli_query($conn,$qrr1);
-
-                    if(!$res){
-                      $orderOk = false;
-                      break;
-                    }
-                  }
-
-                  if($orderOk){
-                    $_SESSION['ordered'] = true;
-                    $_SESSION['cart'] = [];
-                    header("location:../../cart.php");
-                    exit;
-                  }
-                  header("location:login.php");
-                  exit;
-                }}
-
-            
-        }else{
-            echo"<script>alert('First Book Table or Login'); window.location.href = '../../index.php';</script>";
-        }
-
-        
+function order_manage_redirect(string $path, string $message = '', string $type = 'success'): void
+{
+    if ($message !== '') {
+        $_SESSION['admin_order_notice'] = ['type' => $type, 'message' => $message];
     }
-  if(isset($_POST['change'])){
-        if($_POST['status'] == 'deliverd' ){
-            $cid = $_POST['id'];
-            $sts = $_POST['status'];
-            $o_id = $_POST['order_id'];
-            $qr4 = "update orders set status = '$sts' where customer_id = '$cid' && order_id >= $o_id";
-            $re = mysqli_query($conn,$qr4);
-            if($re){
-                header("location:../../admin_ord.php");
-            }else{
-                echo "<script>console.log('error in update status');</script>";
-            }
-        }else{
-            if($_POST['status'] == 'done'){
-                $cid = $_POST['id'];
-                $sts = $_POST['status'];
-                $o_id = $_POST['order_id']; 
-                $t_no = $_POST['table_no']; 
-                $qr4 = "update orders set status = '$sts' where customer_id = '$cid' && order_id >= $o_id";
-                $qr5 = "update book_table set table_status = 'non' where table_no = '$t_no' ";
-                $re = mysqli_query($conn,$qr4);
-                $res = mysqli_query($conn,$qr5);
-                if($re && $res){
-                    header("location:../../admin.php");
-                }else{
-                    echo "<script>console.log('error in update status');</script>";
-                }  
-            }else{
-        $cid = $_POST['id'];
-        $sts = $_POST['status'];
-        $o_id = $_POST['order_id'];
-        $qr4 = "update orders set status = '$sts' where customer_id = '$cid' && order_id >= $o_id";
-        $re = mysqli_query($conn,$qr4);
-        if($re){
-            header("location:../../admin.php");
-        }else{
-            echo "<script>console.log('error in update status');</script>";
+    header('Location: ' . $path);
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    order_manage_redirect('../../admin.php');
+}
+
+if (isset($_POST['order'])) {
+    if (!isset($_SESSION['id']) || !isset($_SESSION['table'])) {
+        echo "<script>alert('First Book Table or Login'); window.location.href='../../index.php';</script>";
+        exit;
+    }
+
+    if (!isset($_SESSION['cart']) || count($_SESSION['cart']) === 0) {
+        header('Location: ../../cart.php');
+        exit;
+    }
+
+    $id = (int) $_SESSION['id'];
+    $desc = mysqli_real_escape_string($conn, (string) ($_POST['order_desc'] ?? ''));
+    $table_no = (int) $_SESSION['table'];
+    $status = order_normalize_status((string) ($_POST['status'] ?? 'ordered'));
+    if ($status !== 'ordered') {
+        $status = 'ordered';
+    }
+
+    $orderOk = true;
+    foreach ($_SESSION['cart'] as $value) {
+        $pro_no = (int) $value['no'];
+        $qtyName = 'qty_' . $pro_no;
+        $qty = (int) ($_POST[$qtyName] ?? 0);
+        $total = (int) ($_POST['total'] ?? 0);
+
+        $insert = mysqli_query(
+            $conn,
+            "INSERT INTO orders (customer_id, product_id, qty, order_desc, table_no, status, total)
+             VALUES ($id, $pro_no, $qty, '$desc', $table_no, '$status', $total)"
+        );
+        mysqli_query($conn, "UPDATE products SET product_qty = product_qty - $qty WHERE product_no = $pro_no");
+
+        if (!$insert) {
+            $orderOk = false;
+            break;
         }
     }
+
+    if ($orderOk) {
+        order_sync_table_status($conn, $table_no);
+        $_SESSION['ordered'] = true;
+        $_SESSION['cart'] = [];
+        header('Location: ../../cart.php');
+        exit;
     }
-  }
-  if(isset($_POST['remove'])){
-    foreach($_SESSION['cart'] as $key => $value){
-        if($value['no'] == $_POST['no']){
-            // echo "removed";
+
+    header('Location: ../../login.php');
+    exit;
+}
+
+if (isset($_POST['change'])) {
+    $customerId = (int) ($_POST['id'] ?? 0);
+    $orderId = (int) ($_POST['order_id'] ?? 0);
+    $tableNo = isset($_POST['table_no']) ? (int) $_POST['table_no'] : null;
+    $orderTime = isset($_POST['order_time']) ? (string) $_POST['order_time'] : null;
+    $newStatus = order_normalize_status((string) ($_POST['status'] ?? ''));
+    $returnPath = (string) ($_POST['return_to'] ?? '');
+
+    if ($customerId <= 0 || $orderId <= 0 || $newStatus === '') {
+        order_manage_redirect('../../admin.php', 'Invalid order update request.', 'error');
+    }
+
+    $currentStatus = order_get_batch_current_status($conn, $customerId, $orderId);
+    if ($currentStatus === null) {
+        order_manage_redirect('../../admin.php', 'Order not found.', 'error');
+    }
+
+    if (!order_validate_transition($currentStatus, $newStatus)) {
+        $redirect = $returnPath !== '' ? $returnPath : order_admin_redirect_for_status($currentStatus);
+        order_manage_redirect(
+            $redirect,
+            'That status change is not allowed for this order.',
+            'error'
+        );
+    }
+
+    if (!order_update_batch_status($conn, $customerId, $orderId, $newStatus, $tableNo, $orderTime)) {
+        $redirect = $returnPath !== '' ? $returnPath : order_admin_redirect_for_status($currentStatus);
+        order_manage_redirect($redirect, 'Failed to update order status.', 'error');
+    }
+
+    $redirect = $returnPath !== '' ? $returnPath : order_admin_redirect_for_status($newStatus);
+    order_manage_redirect($redirect, order_admin_flash_message($newStatus));
+}
+
+if (isset($_POST['remove'])) {
+    foreach ($_SESSION['cart'] as $key => $value) {
+        if ($value['no'] == $_POST['no']) {
             unset($_SESSION['cart'][$key]);
             $_SESSION['cart'] = array_values($_SESSION['cart']);
-            echo"<script> alert('Removed'); window.location.href='../../cart.php';";
-            // // header("location:data_insert.php");
-            echo"</script>";
+            echo "<script>alert('Removed'); window.location.href='../../cart.php';</script>";
+            exit;
         }
-        
     }
-
 }
-       
-  }
 
-?>
+order_manage_redirect('../../admin.php');

@@ -25,6 +25,11 @@ $isLoggedIn = isset($_SESSION['login']) && $_SESSION['login'] === true;
   <link rel="icon" href="assets/imgs/logo3.png">
   <link rel="stylesheet" href="assets/css/theme.css">
   <link rel="stylesheet" href="assets/css/admin.css">
+  <?php if (!empty($adminExtraCss) && is_array($adminExtraCss)) : ?>
+    <?php foreach ($adminExtraCss as $cssFile) : ?>
+      <link rel="stylesheet" href="<?php echo htmlspecialchars($cssFile); ?>">
+    <?php endforeach; ?>
+  <?php endif; ?>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
@@ -107,3 +112,12 @@ $isLoggedIn = isset($_SESSION['login']) && $_SESSION['login'] === true;
       </header>
 
       <main class="admin-content">
+        <?php if (!empty($_SESSION['admin_order_notice'])) :
+          $notice = $_SESSION['admin_order_notice'];
+          unset($_SESSION['admin_order_notice']);
+          $noticeType = ($notice['type'] ?? 'success') === 'error' ? 'error' : 'success';
+          ?>
+          <div class="admin-alert admin-alert--<?php echo htmlspecialchars($noticeType); ?>" role="alert">
+            <?php echo htmlspecialchars($notice['message'] ?? ''); ?>
+          </div>
+        <?php endif; ?>
