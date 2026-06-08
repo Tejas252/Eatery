@@ -2,12 +2,14 @@
 session_start();
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth_helpers.php';
 require_once __DIR__ . '/table_admin_helpers.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     table_admin_redirect('', 'success');
 }
 
+admin_require_auth();
 if (isset($_POST['create'])) {
     $errors = table_admin_validate_payload($_POST, false);
     if ($errors) {

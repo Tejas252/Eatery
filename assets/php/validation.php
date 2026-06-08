@@ -2,6 +2,7 @@
 session_start();
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth_helpers.php';
 
 function auth_redirect(string $path): void
 {
@@ -33,36 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     auth_redirect('../../signup.php');
 }
 
-if (isset($_POST['forgot'])) {
-    $email = trim((string) ($_POST['Email'] ?? ''));
-    $phone = trim((string) ($_POST['phone'] ?? ''));
-    $password = (string) ($_POST['password'] ?? '');
-    $cpassword = (string) ($_POST['cpassword'] ?? '');
-
-    if ($email === '' || $phone === '' || $password === '' || $cpassword === '') {
-        auth_redirect('../../assets/php/forgot.php?error=required');
-    }
-
-    if ($password !== $cpassword) {
-        auth_redirect('../../assets/php/forgot.php?error=password');
-    }
-
-    $emailEsc = mysqli_real_escape_string($conn, $email);
-    $phoneEsc = mysqli_real_escape_string($conn, $phone);
-    $passwordEsc = mysqli_real_escape_string($conn, $password);
-
-    $qr = "UPDATE customer SET cust_password = '$passwordEsc'
-           WHERE cust_email = '$emailEsc' AND cust_mobile = '$phoneEsc'";
-    $res = mysqli_query($conn, $qr);
-
-    if ($res && mysqli_affected_rows($conn) > 0) {
-        $_SESSION['auth_success'] = 'Password updated successfully. Please sign in.';
-        auth_login_redirect('registered=1');
-    }
-
-    auth_redirect('../../assets/php/forgot.php?error=notfound');
-}
-
 if (!isset($_POST['submit'])) {
     auth_signup_redirect('invalid', '');
 }
@@ -83,6 +54,10 @@ if ($email === '' || $username === '' || $name === '' || $phone === '' || $passw
 }
 
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    auth_signup_redirect('email');
+}
+
+if (auth_is_admin_email($email)) {
     auth_signup_redirect('email');
 }
 

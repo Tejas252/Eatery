@@ -1,18 +1,10 @@
 <?php
 
-    session_start();
-    unset($_SESSION['login']);
-    unset($_SESSION['id']);
-    unset($_SESSION['username']);
-    unset($_SESSION['name']);
-    unset($_SESSION['email']);
-    unset($_SESSION['phone']);
-    unset($_SESSION['table']);
-    unset($_SESSION['guest']);
-    unset($_SESSION['booking_date']);
-    unset($_SESSION['booking_time']);
-    unset($_SESSION['booking_status']);
+session_start();
 
-    header('location:../../index.php');
+require_once __DIR__ . '/auth_helpers.php';
 
-?>
+auth_clear_session();
+
+header('Location: ../../index.php');
+exit;

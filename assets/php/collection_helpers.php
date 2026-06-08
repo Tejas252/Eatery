@@ -1,5 +1,76 @@
 <?php
 
+function menu_category_filter_slug(string $type): string
+{
+    return strtolower(trim($type));
+}
+
+function menu_category_display_label(string $type): string
+{
+    $slug = menu_category_filter_slug($type);
+    $labels = [
+        'burger' => 'Burgers',
+        'pizza' => 'Pizza',
+    ];
+
+    if (isset($labels[$slug])) {
+        return $labels[$slug];
+    }
+
+    return ucwords(str_replace(['_', '-'], ' ', $slug));
+}
+
+function menu_category_css_class(string $type): string
+{
+    $slug = menu_category_filter_slug($type);
+
+    if (in_array($slug, ['pizza', 'burger'], true)) {
+        return $slug;
+    }
+
+    return 'default';
+}
+
+function fetch_menu_categories(mysqli $conn): array
+{
+    $result = mysqli_query(
+        $conn,
+        'SELECT DISTINCT product_type FROM products WHERE product_qty > 0 ORDER BY product_type ASC'
+    );
+
+    if (!$result) {
+        return [];
+    }
+
+    $seen = [];
+    $categories = [];
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $type = trim((string) ($row['product_type'] ?? ''));
+        if ($type === '') {
+            continue;
+        }
+
+        $slug = menu_category_filter_slug($type);
+        if (isset($seen[$slug])) {
+            continue;
+        }
+
+        $seen[$slug] = true;
+        $categories[] = [
+            'type' => $type,
+            'slug' => $slug,
+            'label' => menu_category_display_label($type),
+        ];
+    }
+
+    usort($categories, static function (array $a, array $b): int {
+        return strcasecmp($a['label'], $b['label']);
+    });
+
+    return $categories;
+}
+
 function get_collections(): array
 {
     return [
@@ -121,13 +192,41 @@ function collection_page_url(string $slug): string
     return 'collection.php?slug=' . urlencode($slug);
 }
 
-function fetch_featured_menu_products(mysqli $conn, int $limitPerType = 12): array
+function fetch_featured_menu_products(mysqli $conn, int $limitPerCategory = 12): array
 {
-    $collections = get_collections();
-    $pizza = fetch_collection_products($conn, $collections['pizza'], $limitPerType);
-    $burgers = fetch_collection_products($conn, $collections['burgers'], $limitPerType);
+    $categories = fetch_menu_categories($conn);
+    if (empty($categories)) {
+        return [];
+    }
 
-    return array_merge($pizza, $burgers);
+    $limitPerCategory = max(1, min(50, $limitPerCategory));
+    $products = [];
+
+    foreach ($categories as $category) {
+        $slug = $category['slug'];
+        $stmt = $conn->prepare(
+            'SELECT * FROM products
+             WHERE product_qty > 0 AND LOWER(TRIM(product_type)) = ?
+             ORDER BY product_no ASC
+             LIMIT ?'
+        );
+
+        if (!$stmt) {
+            continue;
+        }
+
+        $stmt->bind_param('si', $slug, $limitPerCategory);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        while ($row = $result->fetch_assoc()) {
+            $products[] = $row;
+        }
+
+        $stmt->close();
+    }
+
+    return $products;
 }
 
 function fetch_products_rating_summaries(mysqli $conn, array $productNos): array
@@ -190,7 +289,7 @@ function enrich_products_with_ratings(mysqli $conn, array $products): array
             $product['rating_average'] = $summaries[$id]['average'];
             $product['rating_count'] = $summaries[$id]['count'];
         } else {
-            $product['rating_average'] = 4.5;
+            $product['rating_average'] = null;
             $product['rating_count'] = 0;
         }
     }

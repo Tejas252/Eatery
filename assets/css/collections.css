@@ -282,16 +282,30 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1.25rem;
+  align-items: stretch;
+}
+
+.collection-page__grid-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
 }
 
 .collection-page__grid-item .product-carousel__slide {
-  flex: none;
+  flex: 1 1 auto;
   min-width: 0;
   width: 100%;
+  height: 100%;
+  scroll-snap-align: unset;
 }
 
 .collection-page__grid-item .product-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   min-height: 420px;
+  height: 100%;
 }
 
 .collection-page__empty {

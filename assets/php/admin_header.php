@@ -10,6 +10,9 @@ if (!isset($adminActiveNav)) {
 }
 
 require_once __DIR__ . '/admin_helpers.php';
+require_once __DIR__ . '/auth_helpers.php';
+
+admin_require_auth();
 
 $adminNavItems = admin_nav_items();
 $adminUserLabel = admin_user_label();

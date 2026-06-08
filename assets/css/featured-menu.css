@@ -178,40 +178,6 @@
   width: 100%;
 }
 
-/* Rating row on cards */
-.product-card__rating {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  margin-top: 0.15rem;
-}
-
-.product-card__stars {
-  display: inline-flex;
-  gap: 0.1rem;
-  line-height: 1;
-}
-
-.product-card__star {
-  font-size: 0.82rem;
-  color: rgba(var(--eatery-text-rgb), 0.2);
-}
-
-.product-card__star.is-filled {
-  color: var(--accent);
-}
-
-.product-card__star.is-half {
-  color: var(--accent-hover);
-  opacity: 0.65;
-}
-
-.product-card__rating-text {
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: var(--eatery-text-muted);
-}
-
 .product-card--menu-grid .product-card__price-value {
   color: var(--accent);
 }

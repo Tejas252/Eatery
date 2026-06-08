@@ -141,6 +141,30 @@ function product_admin_get(mysqli $conn, int $productId): ?array
     return $row ?: null;
 }
 
+function product_admin_product_no_exists(mysqli $conn, int $productNo): bool
+{
+    $stmt = $conn->prepare('SELECT product_id FROM products WHERE product_no = ? LIMIT 1');
+    if (!$stmt) {
+        return true;
+    }
+    $stmt->bind_param('i', $productNo);
+    $stmt->execute();
+    $exists = (bool) $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    return $exists;
+}
+
+function product_admin_add_form_redirect(string $message = '', string $type = 'error'): void
+{
+    if ($message !== '') {
+        $_SESSION['admin_order_notice'] = ['type' => $type, 'message' => $message];
+    }
+
+    header('Location: ../../data_insert.php');
+    exit;
+}
+
 function product_admin_upload_image(array $file): array
 {
     if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
@@ -214,9 +238,9 @@ function product_admin_validate_payload(array $data, bool $isUpdate = true): arr
     }
 
     if ($desc === '') {
-        $errors[] = 'Description is required.';
+        $errors[] = 'Product caption is required.';
     } elseif (strlen($desc) > 100) {
-        $errors[] = 'Description must be 100 characters or fewer.';
+        $errors[] = 'Product caption must be 100 characters or fewer.';
     }
 
     if ($price < 0) {

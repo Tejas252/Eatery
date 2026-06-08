@@ -22,7 +22,7 @@ $previousBatchKey = null;
     <?php if ($hasOrders) : ?>
       <span class="admin-badge admin-badge--pending"><?php echo count($rows); ?> items</span>
     <?php endif; ?>
-  </div>
+                        </div>
   <div class="admin-card__body">
     <?php if (!$hasOrders) : ?>
       <div class="admin-empty">

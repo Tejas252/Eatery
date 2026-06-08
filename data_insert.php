@@ -1,9 +1,13 @@
 <?php
 session_start();
 
+include 'assets/php/config.php';
+require_once 'assets/php/product_admin_helpers.php';
+
 $adminPageTitle = 'Add Items';
 $adminPageSubtitle = 'Add a new product to the menu catalog';
 $adminActiveNav = 'add_items';
+$categories = product_admin_categories($conn);
 
 include 'assets/php/admin_header.php';
 ?>
@@ -13,7 +17,7 @@ include 'assets/php/admin_header.php';
     <h2 class="admin-card__title">New Product</h2>
   </div>
   <div class="admin-card__body admin-card__body--padded">
-    <form action="data_insert_take.php" method="post" enctype="multipart/form-data">
+    <form action="assets/php/manage_product.php" method="post" enctype="multipart/form-data">
       <div class="admin-form-grid">
         <div class="admin-field">
           <label for="product_no" class="admin-label">Product Number</label>
@@ -52,12 +56,21 @@ include 'assets/php/admin_header.php';
         </div>
         <div class="admin-field">
           <label for="product_type" class="admin-label">Category</label>
-          <select name="product_type" id="product_type" class="admin-select" required>
-            <option value="pizza">Pizza</option>
-            <option value="Burger">Burger</option>
-            <option value="Chinease">Chinease</option>
-            <option value="Maxican">Maxican</option>
-          </select>
+          <input
+            type="text"
+            name="product_type"
+            id="product_type"
+            class="admin-input"
+            list="product-category-options"
+            placeholder="e.g. Pizza, Chinese"
+            maxlength="15"
+            required
+          >
+          <datalist id="product-category-options">
+            <?php foreach ($categories as $category) : ?>
+              <option value="<?php echo htmlspecialchars($category); ?>"></option>
+            <?php endforeach; ?>
+          </datalist>
         </div>
         <div class="admin-field">
           <label for="product_qty" class="admin-label">Stock Quantity</label>
@@ -87,19 +100,21 @@ include 'assets/php/admin_header.php';
           </label>
         </div>
         <div class="admin-field admin-field--full">
-          <label for="product_desc" class="admin-label">Description</label>
+          <label for="product_desc" class="admin-label">Product Caption</label>
           <textarea
             name="product_desc"
             id="product_desc"
             class="admin-textarea"
-            placeholder="Short product description"
+            placeholder="Short caption shown on menu cards (e.g. Medium size, 6 slices, serves 2)"
+            maxlength="100"
             required
           ></textarea>
+          <p class="admin-field__hint">This caption appears under the product name on the Home Page and menu cards.</p>
         </div>
       </div>
       <div class="admin-form-actions">
         <a href="products.php" class="admin-btn admin-btn--ghost">Cancel</a>
-        <button type="submit" name="submit" class="admin-btn admin-btn--primary">Add Product</button>
+        <button type="submit" name="create" class="admin-btn admin-btn--primary">Add Product</button>
       </div>
     </form>
   </div>

@@ -185,7 +185,7 @@ include 'assets/php/admin_header.php';
           <div class="admin-view-product__row"><span>Category</span><strong id="viewProductCategory"></strong></div>
           <div class="admin-view-product__row"><span>Price</span><strong id="viewProductPrice"></strong></div>
           <div class="admin-view-product__row"><span>Stock</span><strong id="viewProductStock"></strong></div>
-          <div class="admin-view-product__row"><span>Description</span><strong id="viewProductDesc"></strong></div>
+          <div class="admin-view-product__row"><span>Caption</span><strong id="viewProductDesc"></strong></div>
         </div>
       </div>
     </div>
@@ -236,8 +236,8 @@ include 'assets/php/admin_header.php';
             <input type="number" class="admin-input admin-input--no-icon" id="edit_qty" name="product_qty" min="0" required>
           </div>
           <div class="admin-field admin-field--full">
-            <label class="admin-label" for="edit_desc">Description</label>
-            <textarea class="admin-textarea" id="edit_desc" name="product_desc" maxlength="100" required></textarea>
+            <label class="admin-label" for="edit_desc">Product Caption</label>
+            <textarea class="admin-textarea" id="edit_desc" name="product_desc" maxlength="100" placeholder="Short caption shown on menu cards" required></textarea>
           </div>
           <div class="admin-field admin-field--full">
             <label class="admin-label" for="edit_img">Replace Image (optional)</label>

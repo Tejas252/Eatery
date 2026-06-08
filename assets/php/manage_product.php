@@ -2,13 +2,64 @@
 session_start();
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth_helpers.php';
 require_once __DIR__ . '/product_admin_helpers.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     product_admin_redirect('', 'error', product_admin_query_params());
 }
 
+admin_require_auth();
+
 $returnQuery = product_admin_query_params_from_request();
+
+if (isset($_POST['create'])) {
+    $errors = product_admin_validate_payload($_POST, false);
+    if ($errors) {
+        product_admin_add_form_redirect(implode(' ', $errors));
+    }
+
+    $productNo = (int) ($_POST['product_no'] ?? 0);
+    if (product_admin_product_no_exists($conn, $productNo)) {
+        product_admin_add_form_redirect('Product number already exists. Choose a unique product number.');
+    }
+
+    if (empty($_FILES['product_img']['name'])) {
+        product_admin_add_form_redirect('Product image is required.');
+    }
+
+    $upload = product_admin_upload_image($_FILES['product_img']);
+    if (!$upload['ok']) {
+        product_admin_add_form_redirect($upload['message']);
+    }
+
+    $name = trim((string) $_POST['product_name']);
+    $type = trim((string) $_POST['product_type']);
+    $desc = trim((string) $_POST['product_desc']);
+    $price = (int) $_POST['product_price'];
+    $qty = (int) $_POST['product_qty'];
+    $imageName = $upload['filename'];
+
+    $stmt = $conn->prepare(
+        'INSERT INTO products (product_no, product_name, product_price, product_type, product_qty, product_desc, product_img)
+         VALUES (?, ?, ?, ?, ?, ?, ?)'
+    );
+    if (!$stmt) {
+        product_admin_delete_image_file($imageName);
+        product_admin_add_form_redirect('Failed to create product.');
+    }
+
+    $stmt->bind_param('isissis', $productNo, $name, $price, $type, $qty, $desc, $imageName);
+    $ok = $stmt->execute();
+    $stmt->close();
+
+    if (!$ok) {
+        product_admin_delete_image_file($imageName);
+        product_admin_add_form_redirect('Failed to create product.');
+    }
+
+    product_admin_redirect('Product created successfully.', 'success', $returnQuery);
+}
 
 if (isset($_POST['delete'])) {
     $productId = (int) ($_POST['product_id'] ?? 0);

@@ -37,11 +37,16 @@ $navHasActiveBooking = get_current_booking_from_session() !== null;
   <link rel="stylesheet" href="assets/css/collections.css">
   <link rel="stylesheet" href="assets/css/add-to-cart.css">
   <link rel="stylesheet" href="assets/css/site-header.css">
+  <link rel="stylesheet" href="assets/css/site-footer.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
   <style>
     button img { height: 20px; width: 20px; }
+    .collection-page,
+    .collection-page .product-card {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
   </style>
 </head>
 <body class="collection-page" id="top">
@@ -65,19 +70,13 @@ $navHasActiveBooking = get_current_booking_from_session() !== null;
         <p class="collection-page__meta"><?php echo $productCount; ?> product<?php echo $productCount === 1 ? '' : 's'; ?> available</p>
       </header>
 
-      <?php render_product_grid($products); ?>
+      <?php render_product_grid($conn, $products); ?>
 
       <a class="collection-page__back" href="index.php#collection-<?php echo htmlspecialchars($collection['slug']); ?>">&larr; Back to Home</a>
     </div>
   </main>
 
-  <div class="container-fluid bg-dark text-light has-height-md middle-items border-top text-center">
-    <div class="row">
-      <div class="col-sm-4"><h3>EMAIL US</h3><p class="text-muted">Contact@eatery.com</p></div>
-      <div class="col-sm-4"><h3>CALL US</h3><p class="text-muted">+91 9898252898</p></div>
-      <div class="col-sm-4"><h3>FIND US</h3><p class="text-muted">111, Platinam hub,Noida</p></div>
-    </div>
-  </div>
+  <?php include('assets/php/site_footer.php'); ?>
 
   <?php include('assets/php/cart_modal.php'); ?>
 

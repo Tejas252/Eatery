@@ -13,6 +13,12 @@ require_once('assets/php/book_table_helpers.php');
 require_once('assets/php/collection_helpers.php');
 require_once('assets/php/collection_render.php');
 
+$accessDeniedNotice = '';
+if (!empty($_SESSION['access_denied_notice'])) {
+    $accessDeniedNotice = (string) $_SESSION['access_denied_notice'];
+    unset($_SESSION['access_denied_notice']);
+}
+
 clear_booking_session_if_logged_out();
 
 $collections = get_collections();
@@ -59,6 +65,7 @@ if ($hasActiveBooking) {
   <link rel="stylesheet" href="assets/css/site-header.css">
   <link rel="stylesheet" href="assets/css/book-table.css">
   <link rel="stylesheet" href="assets/css/about.css">
+  <link rel="stylesheet" href="assets/css/site-footer.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
@@ -86,6 +93,13 @@ if ($hasActiveBooking) {
       $navHasActiveBooking = $hasActiveBooking;
       include('assets/php/site_header.php');
     ?>
+    <?php if ($accessDeniedNotice !== '') : ?>
+      <div class="container" style="padding-top:1rem;">
+        <div role="alert" style="padding:0.85rem 1rem;border-radius:8px;border:1px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.12);color:#fecaca;">
+          <?php echo htmlspecialchars($accessDeniedNotice); ?>
+        </div>
+      </div>
+    <?php endif; ?>
     <!-- Hero -->
     <header id="home" class="home-hero">
       <div class="home-hero__inner wow fadeIn">
@@ -111,7 +125,7 @@ if ($hasActiveBooking) {
             'theme' => 'bestselling',
             'cta_url' => collection_page_url('pizza'),
             'cta_label' => 'Explore Collections',
-          ], $bestSellingProducts);
+          ], $bestSellingProducts, $conn);
         ?>
       </div>
     </div>
@@ -206,27 +220,7 @@ if ($hasActiveBooking) {
 
   <?php include('assets/php/about_section.php'); ?>
 
-
-  
-  <!-- page footer  -->
-  <div class="container-fluid bg-dark text-light has-height-md middle-items border-top text-center wow fadeIn">
-    <div class="row">
-      <div class="col-sm-4">
-        <h3>EMAIL US</h3>
-        <P class="text-muted">Contact@eatery.com</P>
-      </div>
-      <div class="col-sm-4">
-        <h3>CALL US</h3>
-        <P class="text-muted">+91 9898252898</P>
-      </div>
-      <div class="col-sm-4">
-        <h3>FIND US</h3>
-        <P class="text-muted">111, Platinam hub,Noida</P>
-      </div>
-    </div>
-  </div>
-
-    <!-- end of page footer -->
+  <?php include('assets/php/site_footer.php'); ?>
 
     <?php include('assets/php/cart_modal.php'); ?>
 

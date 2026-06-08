@@ -2,6 +2,7 @@
 session_start();
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth_helpers.php';
 require_once __DIR__ . '/order_helpers.php';
 
 function order_manage_redirect(string $path, string $message = '', string $type = 'success'): void
@@ -14,7 +15,8 @@ function order_manage_redirect(string $path, string $message = '', string $type 
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    order_manage_redirect('../../admin.php');
+    header('Location: ../../index.php');
+    exit;
 }
 
 if (isset($_POST['order'])) {
@@ -69,6 +71,8 @@ if (isset($_POST['order'])) {
 }
 
 if (isset($_POST['change'])) {
+    admin_require_auth();
+
     $customerId = (int) ($_POST['id'] ?? 0);
     $orderId = (int) ($_POST['order_id'] ?? 0);
     $tableNo = isset($_POST['table_no']) ? (int) $_POST['table_no'] : null;

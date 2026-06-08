@@ -2,6 +2,7 @@
 session_start();
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth_helpers.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ../../login.php');
@@ -16,13 +17,9 @@ if ($email === '' || $password === '') {
     exit;
 }
 
-if (strcmp($email, 'rumit10@gmail.com') === 0 && strcmp($password, '123456') === 0) {
-    $_SESSION['id'] = 0;
-    $_SESSION['username'] = 'admin';
-    $_SESSION['name'] = 'Administrator';
-    $_SESSION['email'] = $email;
-    $_SESSION['login'] = true;
-    header('Location: ../../admin.php');
+if (auth_is_admin_credentials($email, $password)) {
+    auth_set_admin_session();
+    header('Location: ../../admin_dashboard.php');
     exit;
 }
 
@@ -39,12 +36,7 @@ if (!$result) {
 $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
 
 if ($row) {
-    $_SESSION['id'] = $row['cust_id'];
-    $_SESSION['username'] = $row['cust_username'];
-    $_SESSION['name'] = $row['cust_name'];
-    $_SESSION['phone'] = $row['cust_mobile'];
-    $_SESSION['email'] = $row['cust_email'];
-    $_SESSION['login'] = true;
+    auth_set_customer_session($row);
     header('Location: ../../index.php');
     exit;
 }

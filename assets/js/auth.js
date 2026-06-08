@@ -180,4 +180,50 @@
       }
     });
   }
+
+  var forgotForm = document.getElementById('forgotForm');
+  if (forgotForm) {
+    forgotForm.addEventListener('submit', function (e) {
+      var email = forgotForm.querySelector('[name="email"]');
+      var password = forgotForm.querySelector('[name="password"]');
+      var cpassword = forgotForm.querySelector('[name="cpassword"]');
+      var valid = true;
+
+      [email, password, cpassword].forEach(function (input) {
+        if (!input) return;
+        if (!input.value.trim()) {
+          setFieldError(input, 'This field is required.');
+          valid = false;
+        } else {
+          clearFieldError(input);
+        }
+      });
+
+      if (email && email.value.trim() && !isValidEmail(email.value.trim())) {
+        setFieldError(email, 'Enter a valid email address.');
+        valid = false;
+      }
+
+      if (password && password.value.length > 20) {
+        setFieldError(password, 'Password must be 20 characters or fewer.');
+        valid = false;
+      }
+
+      if (password && cpassword && password.value !== cpassword.value) {
+        setFieldError(cpassword, 'Passwords do not match.');
+        valid = false;
+      }
+
+      if (!valid) {
+        e.preventDefault();
+        return;
+      }
+
+      var btn = forgotForm.querySelector('[type="submit"]');
+      if (btn) {
+        btn.classList.add('is-loading');
+        btn.setAttribute('aria-busy', 'true');
+      }
+    });
+  }
 })();

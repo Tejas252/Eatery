@@ -55,6 +55,7 @@ $relatedProducts = fetch_related_products($conn, $product, $productNo, 8);
   <link rel="stylesheet" href="assets/css/foodhut.css">
   <link rel="stylesheet" href="assets/css/add-to-cart.css">
   <link rel="stylesheet" href="assets/css/site-header.css">
+  <link rel="stylesheet" href="assets/css/site-footer.css">
   <link rel="stylesheet" href="assets/css/menu.css">
   <link rel="stylesheet" href="assets/css/product-detail.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -269,13 +270,7 @@ $relatedProducts = fetch_related_products($conn, $product, $productNo, 8);
     </div>
   </main>
 
-  <footer class="product-detail-footer">
-    <div class="product-detail-footer__inner">
-      <div><h3>Email</h3><p>Contact@eatery.com</p></div>
-      <div><h3>Call</h3><p>+91 9898252898</p></div>
-      <div><h3>Visit</h3><p>111, Platinam hub, Noida</p></div>
-    </div>
-  </footer>
+  <?php include('assets/php/site_footer.php'); ?>
 
   <?php include('assets/php/cart_modal.php'); ?>
   <div class="cart-toast-stack" id="cartToastStack" aria-live="polite" aria-atomic="true"></div>

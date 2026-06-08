@@ -1,5 +1,9 @@
 <?php
 
+if (!function_exists('menu_category_filter_slug')) {
+    require_once __DIR__ . '/collection_helpers.php';
+}
+
 if (!function_exists('product_page_url')) {
     require_once __DIR__ . '/product_helpers.php';
 }
@@ -33,7 +37,7 @@ function render_product_card(array $product, int $index = 0, array $options = []
     $layout = $options['layout'] ?? 'carousel';
     $showRating = !empty($options['show_rating']);
     $wrapperClass = $layout === 'grid' ? 'featured-menu__item' : 'product-carousel__slide';
-    $categorySlug = strtolower($product['product_type']) === 'burger' ? 'burger' : 'pizza';
+    $categorySlug = menu_category_filter_slug((string) ($product['product_type'] ?? ''));
     $badge = product_card_badge($product, $index);
     $badgeLabel = product_card_badge_label($badge);
     $type = htmlspecialchars(ucfirst(strtolower($product['product_type'])));
@@ -41,14 +45,17 @@ function render_product_card(array $product, int $index = 0, array $options = []
     $desc = htmlspecialchars($product['product_desc']);
     $price = number_format((int) $product['product_price']);
     $img = htmlspecialchars($product['product_img']);
-    $typeClass = strtolower($product['product_type']) === 'burger' ? 'burger' : 'pizza';
+    $typeClass = menu_category_css_class((string) ($product['product_type'] ?? ''));
     $productNo = (int) $product['product_no'];
     $detailUrl = htmlspecialchars(product_page_url($productNo));
-    $ratingAvg = isset($product['rating_average']) ? (float) $product['rating_average'] : 4.5;
     $ratingCount = isset($product['rating_count']) ? (int) $product['rating_count'] : 0;
-    $ratingLabel = $ratingCount > 0
+    $ratingAvg = $ratingCount > 0 && isset($product['rating_average'])
+        ? (float) $product['rating_average']
+        : 0;
+    $hasRating = $ratingCount > 0;
+    $ratingLabel = $hasRating
         ? number_format($ratingAvg, 1) . ' (' . $ratingCount . ')'
-        : number_format($ratingAvg, 1) . ' (New)';
+        : '';
     ?>
     <div
         class="<?php echo htmlspecialchars($wrapperClass); ?>"
@@ -80,7 +87,7 @@ function render_product_card(array $product, int $index = 0, array $options = []
                 </div>
                 <h3 class="product-card__title"><a href="<?php echo $detailUrl; ?>"><?php echo $name; ?></a></h3>
                 <p class="product-card__desc"><?php echo $desc; ?></p>
-                <?php if ($showRating) : ?>
+                <?php if ($showRating && $hasRating) : ?>
                     <div class="product-card__rating" aria-label="<?php echo htmlspecialchars($ratingLabel); ?> out of 5">
                         <span class="product-card__stars">
                             <?php for ($s = 1; $s <= 5; $s++) :

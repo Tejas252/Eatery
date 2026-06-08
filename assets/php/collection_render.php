@@ -1,9 +1,16 @@
 <?php
 
 require_once __DIR__ . '/product_card.php';
+require_once __DIR__ . '/collection_helpers.php';
 
-function render_collection_carousel_section(array $config, array $products): void
+function render_storefront_product_card(array $product, int $index): void
 {
+    render_product_card($product, $index, ['show_rating' => true]);
+}
+
+function render_collection_carousel_section(array $config, array $products, mysqli $conn): void
+{
+    $products = enrich_products_with_ratings($conn, $products);
     $carouselId = $config['carousel_id'];
     $sectionId = $config['section_id'] ?? $carouselId;
     $title = $config['title'];
@@ -54,7 +61,7 @@ function render_collection_carousel_section(array $config, array $products): voi
                     <?php
                     if ($count > 0) {
                         foreach ($products as $index => $product) {
-                            render_product_card($product, $index);
+                            render_storefront_product_card($product, $index);
                         }
                     } else {
                         echo '<div class="product-carousel__empty"><p>New items coming soon.</p></div>';
@@ -67,8 +74,10 @@ function render_collection_carousel_section(array $config, array $products): voi
     <?php
 }
 
-function render_product_grid(array $products): void
+function render_product_grid(mysqli $conn, array $products): void
 {
+    $products = enrich_products_with_ratings($conn, $products);
+
     if (empty($products)) {
         echo '<div class="collection-page__empty"><p>No products available in this collection right now.</p></div>';
         return;
@@ -77,7 +86,7 @@ function render_product_grid(array $products): void
     echo '<div class="collection-page__grid">';
     foreach ($products as $index => $product) {
         echo '<div class="collection-page__grid-item">';
-        render_product_card($product, $index);
+        render_storefront_product_card($product, $index);
         echo '</div>';
     }
     echo '</div>';
@@ -85,6 +94,7 @@ function render_product_grid(array $products): void
 
 function render_featured_menu_section(mysqli $conn, array $products): void
 {
+    $categories = fetch_menu_categories($conn);
     $count = count($products);
     ?>
     <section class="featured-menu" id="featured-menu" aria-labelledby="featuredMenuTitle">
@@ -97,7 +107,7 @@ function render_featured_menu_section(mysqli $conn, array $products): void
                     <span class="featured-menu__divider-icon">🍕</span>
                     <span class="featured-menu__divider-line"></span>
                 </div>
-                <p class="featured-menu__subtitle">Handcrafted pizzas and signature burgers — filter by category and order in seconds.</p>
+                <p class="featured-menu__subtitle">Explore our full menu — filter by category and order in seconds.</p>
             </header>
 
             <div class="featured-menu__toolbar">
@@ -105,12 +115,21 @@ function render_featured_menu_section(mysqli $conn, array $products): void
                     <button type="button" class="featured-menu__tab is-active" role="tab" aria-selected="true" data-filter="all" id="featured-tab-all" aria-controls="featuredMenuGrid">
                         All Items
                     </button>
-                    <button type="button" class="featured-menu__tab" role="tab" aria-selected="false" data-filter="pizza" id="featured-tab-pizza" aria-controls="featuredMenuGrid">
-                        Pizza
-                    </button>
-                    <button type="button" class="featured-menu__tab" role="tab" aria-selected="false" data-filter="burger" id="featured-tab-burger" aria-controls="featuredMenuGrid">
-                        Burgers
-                    </button>
+                    <?php foreach ($categories as $category) :
+                        $tabId = 'featured-tab-' . preg_replace('/[^a-z0-9-]+/', '-', $category['slug']);
+                        ?>
+                        <button
+                            type="button"
+                            class="featured-menu__tab"
+                            role="tab"
+                            aria-selected="false"
+                            data-filter="<?php echo htmlspecialchars($category['slug']); ?>"
+                            id="<?php echo htmlspecialchars($tabId); ?>"
+                            aria-controls="featuredMenuGrid"
+                        >
+                            <?php echo htmlspecialchars($category['label']); ?>
+                        </button>
+                    <?php endforeach; ?>
                 </div>
                 <p class="featured-menu__count" id="featuredMenuCount" aria-live="polite">
                     <?php echo $count; ?> item<?php echo $count === 1 ? '' : 's'; ?>
@@ -135,7 +154,7 @@ function render_featured_menu_section(mysqli $conn, array $products): void
             </div>
 
             <div class="featured-menu__view-all">
-                <a class="featured-menu__view-all-link" href="<?php echo htmlspecialchars(collection_page_url('pizza')); ?>">View Full Menu</a>
+                <a class="featured-menu__view-all-link" href="#featured-menu">Browse All Categories</a>
             </div>
         </div>
     </section>
