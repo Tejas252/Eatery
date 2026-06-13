@@ -39,6 +39,7 @@ $hasAvatarImage = is_file($avatarFile);
   <link rel="stylesheet" href="../../assets/css/foodhut.css">
   <link rel="stylesheet" href="../../assets/css/add-to-cart.css">
   <link rel="stylesheet" href="../../assets/css/site-header.css">
+  <link rel="stylesheet" href="../../assets/css/site-footer.css">
   <link rel="stylesheet" href="../../assets/css/profile.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -146,22 +147,7 @@ $hasAvatarImage = is_file($avatarFile);
     </div>
   </main>
 
-  <footer class="profile-footer">
-    <div class="profile-footer__inner">
-      <div class="profile-footer__col">
-        <h3>Email</h3>
-        <p>Contact@eatery.com</p>
-      </div>
-      <div class="profile-footer__col">
-        <h3>Call</h3>
-        <p>+91 9898252898</p>
-      </div>
-      <div class="profile-footer__col">
-        <h3>Visit</h3>
-        <p>111, Platinam hub, Noida</p>
-      </div>
-    </div>
-  </footer>
+  <?php include __DIR__ . '/site_footer.php'; ?>
 
   <div class="cart-toast-stack" id="cartToastStack" aria-live="polite" aria-atomic="true"></div>
 

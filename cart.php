@@ -192,6 +192,7 @@ function cart_status_label(string $status): string
 
   <link rel="stylesheet" href="assets/css/add-to-cart.css">
   <link rel="stylesheet" href="assets/css/site-header.css">
+  <link rel="stylesheet" href="assets/css/site-footer.css">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
 
@@ -474,37 +475,7 @@ function cart_status_label(string $status): string
 
 
 
-  <footer class="cart-footer">
-
-    <div class="cart-footer__inner">
-
-      <div class="cart-footer__col">
-
-        <h3>Email</h3>
-
-        <p>Contact@eatery.com</p>
-
-      </div>
-
-      <div class="cart-footer__col">
-
-        <h3>Call</h3>
-
-        <p>+91 9898252898</p>
-
-      </div>
-
-      <div class="cart-footer__col">
-
-        <h3>Visit</h3>
-
-        <p>111, Platinam hub, Noida</p>
-
-      </div>
-
-    </div>
-
-  </footer>
+  <?php include 'assets/php/site_footer.php'; ?>
 
 
 

@@ -45,6 +45,7 @@ foreach ($orderGroups as $group) {
   <link rel="stylesheet" href="../../assets/css/cart.css">
   <link rel="stylesheet" href="../../assets/css/add-to-cart.css">
   <link rel="stylesheet" href="../../assets/css/site-header.css">
+  <link rel="stylesheet" href="../../assets/css/site-footer.css">
   <link rel="stylesheet" href="../../assets/css/history.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -162,13 +163,7 @@ foreach ($orderGroups as $group) {
     </div>
   </main>
 
-  <footer class="cart-footer">
-    <div class="cart-footer__inner">
-      <div class="cart-footer__col"><h3>Email</h3><p>Contact@eatery.com</p></div>
-      <div class="cart-footer__col"><h3>Call</h3><p>+91 9898252898</p></div>
-      <div class="cart-footer__col"><h3>Visit</h3><p>111, Platinam hub, Noida</p></div>
-    </div>
-  </footer>
+  <?php include __DIR__ . '/site_footer.php'; ?>
 
   <script src="../../assets/vendors/jquery/jquery-3.4.1.js"></script>
   <script src="../../assets/vendors/bootstrap/bootstrap.bundle.js"></script>
