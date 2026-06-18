@@ -9,6 +9,7 @@ require_once('assets/php/collection_helpers.php');
 require_once('assets/php/book_table_helpers.php');
 
 clear_booking_session_if_logged_out();
+book_table_reconcile_customer_booking($conn);
 
 $collections = get_collections();
 $navHasActiveBooking = get_current_booking_from_session() !== null;

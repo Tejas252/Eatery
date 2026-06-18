@@ -59,7 +59,6 @@ if (isset($_POST['order'])) {
     }
 
     if ($orderOk) {
-        order_sync_table_status($conn, $table_no);
         $_SESSION['ordered'] = true;
         $_SESSION['cart'] = [];
         header('Location: ../../cart.php');

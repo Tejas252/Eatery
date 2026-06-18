@@ -123,29 +123,6 @@ function order_table_has_active_orders(mysqli $conn, int $tableNo): bool
     return $count > 0;
 }
 
-/**
- * Keep book_table in sync with order activity on a table.
- * Reserved while New / Accepted / Preparing orders exist; Available otherwise.
- */
-function order_sync_table_status(mysqli $conn, int $tableNo): bool
-{
-    if ($tableNo <= 0) {
-        return false;
-    }
-
-    $newStatus = order_table_has_active_orders($conn, $tableNo) ? 'res' : 'non';
-    $stmt = $conn->prepare('UPDATE book_table SET table_status = ? WHERE table_no = ?');
-    if (!$stmt) {
-        return false;
-    }
-
-    $stmt->bind_param('si', $newStatus, $tableNo);
-    $ok = $stmt->execute();
-    $stmt->close();
-
-    return $ok;
-}
-
 function order_resolve_table_no(mysqli $conn, int $customerId, int $fromOrderId, ?string $orderTime = null): int
 {
     if ($orderTime !== null) {
@@ -258,14 +235,6 @@ function order_update_batch_status(
 
     if (!$ok) {
         return false;
-    }
-
-    if ($tableNo === null || $tableNo <= 0) {
-        $tableNo = order_resolve_table_no($conn, $customerId, $fromOrderId, $orderTime);
-    }
-
-    if ($tableNo > 0) {
-        order_sync_table_status($conn, $tableNo);
     }
 
     return true;

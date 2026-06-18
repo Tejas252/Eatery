@@ -36,14 +36,15 @@ function book_table_status_key(array $table, int $guests, ?int $userTableNo, arr
         return 'unavailable';
     }
 
-    if ($userTableNo && $userTableNo === $tableNo && $dbStatus === 'res') {
+    if ($userTableNo && $userTableNo === $tableNo) {
         return 'yours';
     }
 
+    if (in_array($tableNo, $occupiedTables, true)) {
+        return 'occupied';
+    }
+
     if ($dbStatus === 'res') {
-        if (in_array($tableNo, $occupiedTables, true)) {
-            return 'occupied';
-        }
         return 'reserved';
     }
 
@@ -163,7 +164,7 @@ function reserve_table(mysqli $conn, int $tableNo, int $guests, string $bookingD
     }
 
     if (strtolower($table['table_status']) === 'res') {
-        return ['success' => false, 'message' => 'This table is already reserved. Please choose another.', 'code' => 'already_reserved'];
+        return ['success' => false, 'message' => 'This table is not available. Please choose another.', 'code' => 'already_reserved'];
     }
 
     $update = $conn->prepare("UPDATE book_table SET table_status = 'res' WHERE table_no = ? AND table_status = 'non'");
@@ -217,12 +218,8 @@ function customer_has_active_booking(): bool
     return get_current_booking_from_session() !== null;
 }
 
-function clear_booking_session_if_logged_out(): void
+function book_table_clear_session_booking(): void
 {
-    if (!empty($_SESSION['login'])) {
-        return;
-    }
-
     unset(
         $_SESSION['table'],
         $_SESSION['guest'],
@@ -230,6 +227,51 @@ function clear_booking_session_if_logged_out(): void
         $_SESSION['booking_time'],
         $_SESSION['booking_status']
     );
+}
+
+/**
+ * If admin set the booked table back to Available, end the customer's session booking.
+ */
+function book_table_reconcile_customer_booking(mysqli $conn): void
+{
+    if (!customer_has_active_booking()) {
+        return;
+    }
+
+    $tableNo = (int) ($_SESSION['table'] ?? 0);
+    if ($tableNo <= 0) {
+        book_table_clear_session_booking();
+        return;
+    }
+
+    $stmt = $conn->prepare('SELECT table_status FROM book_table WHERE table_no = ? LIMIT 1');
+    if (!$stmt) {
+        return;
+    }
+
+    $stmt->bind_param('i', $tableNo);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$row) {
+        book_table_clear_session_booking();
+        return;
+    }
+
+    $status = strtolower(trim((string) ($row['table_status'] ?? '')));
+    if ($status === 'non') {
+        book_table_clear_session_booking();
+    }
+}
+
+function clear_booking_session_if_logged_out(): void
+{
+    if (!empty($_SESSION['login'])) {
+        return;
+    }
+
+    book_table_clear_session_booking();
 }
 
 function get_user_table_for_display(): ?int

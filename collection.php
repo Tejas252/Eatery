@@ -8,6 +8,7 @@ require_once('assets/php/collection_render.php');
 require_once('assets/php/book_table_helpers.php');
 
 clear_booking_session_if_logged_out();
+book_table_reconcile_customer_booking($conn);
 
 $slug = trim($_GET['slug'] ?? '');
 $collection = get_collection_by_slug($slug);

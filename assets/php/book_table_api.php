@@ -11,6 +11,8 @@ if (!$conn) {
     book_table_json(false, 'Unable to connect to the server.', [], 500);
 }
 
+book_table_reconcile_customer_booking($conn);
+
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 $userTable = get_user_table_for_display();
 $customerId = isset($_SESSION['id']) ? (int) $_SESSION['id'] : null;

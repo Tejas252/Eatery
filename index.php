@@ -20,6 +20,7 @@ if (!empty($_SESSION['access_denied_notice'])) {
 }
 
 clear_booking_session_if_logged_out();
+book_table_reconcile_customer_booking($conn);
 
 $collections = get_collections();
 

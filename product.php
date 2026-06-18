@@ -8,6 +8,7 @@ require_once('assets/php/book_table_helpers.php');
 require_once('assets/php/product_helpers.php');
 
 clear_booking_session_if_logged_out();
+book_table_reconcile_customer_booking($conn);
 
 $productNo = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 $product = get_product_detail($conn, $productNo);
