@@ -8,7 +8,37 @@
 // }
 session_start();
 include('data_insert_take.php');
-// include('assets/php.config.php');
+require_once('assets/php/cart_helpers.php');
+require_once('assets/php/book_table_helpers.php');
+require_once('assets/php/collection_helpers.php');
+require_once('assets/php/collection_render.php');
+
+$accessDeniedNotice = '';
+if (!empty($_SESSION['access_denied_notice'])) {
+    $accessDeniedNotice = (string) $_SESSION['access_denied_notice'];
+    unset($_SESSION['access_denied_notice']);
+}
+
+clear_booking_session_if_logged_out();
+book_table_reconcile_customer_booking($conn);
+
+$collections = get_collections();
+
+$bestSellingProducts = fetch_best_selling_products($conn, 8);
+$featuredMenuProducts = enrich_products_with_ratings(
+    $conn,
+    fetch_featured_menu_products($conn, 12)
+);
+
+$bookMaxGuests = book_table_max_guests($conn);
+$bookCurrentGuests = isset($_SESSION['guest']) ? (int) $_SESSION['guest'] : 2;
+$bookCurrentBooking = get_current_booking_from_session();
+$bookIsLoggedIn = isset($_SESSION['login']) && $_SESSION['login'] === true;
+$hasActiveBooking = $bookCurrentBooking !== null;
+
+if ($hasActiveBooking) {
+    $bookCurrentBooking = enrich_booking_with_table($conn, $bookCurrentBooking);
+}
 
 ?>
 
@@ -19,7 +49,7 @@ include('data_insert_take.php');
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="Start your development with FoodHut landing page.">
     <meta name="author" content="Devcrud">
-    <title>FoodHut | Free Bootstrap 4.3.x template</title>
+    <title>Eatery | Restaurant &amp; Online Ordering</title>
    
     <!-- font icons -->
     <link rel="stylesheet" href="assets/vendors/themify-icons/css/themify-icons.css">
@@ -27,334 +57,173 @@ include('data_insert_take.php');
     <link rel="stylesheet" href="assets/vendors/animate/animate.css">
 
     <!-- Bootstrap + FoodHut main styles -->
+	<link rel="stylesheet" href="assets/css/theme.css">
 	<link rel="stylesheet" href="assets/css/foodhut.css">
   <link rel="stylesheet" href="assets/css/menu.css">
-  <link rel="stylesheet" href="assets/css/qty.css">
+  <link rel="stylesheet" href="assets/css/collections.css">
+  <link rel="stylesheet" href="assets/css/featured-menu.css">
+  <link rel="stylesheet" href="assets/css/add-to-cart.css">
+  <link rel="stylesheet" href="assets/css/site-header.css">
+  <link rel="stylesheet" href="assets/css/book-table.css">
+  <link rel="stylesheet" href="assets/css/about.css">
+  <link rel="stylesheet" href="assets/css/site-footer.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
   <style>
     button img{
       height:20px;
       width:20px;
     }
+    .menu-section,
+    .menu-section .product-card,
+    .collections-home,
+    .collection-section,
+    .featured-menu,
+    .home-hero {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
   </style>
 </head>
 <body data-spy="scroll" data-target=".navbar" data-offset="40" id="home">
     
-    <!-- Navbar -->
-    <nav class="custom-navbar navbar navbar-expand-lg navbar-dark fixed-top" data-spy="affix" data-offset-top="10">
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav">
-        <li class="nav-item">
-          <a class="nav-link" href="#home">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#book-table">Book-Table</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#Menu">Menu</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#about">About</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="<?php if(isset($_SESSION['login'])){echo'assets/php/logout.php';}else{echo 'login.php';} ?>"><?php if(isset($_SESSION['login'])){echo'Log-out';}else{echo 'Login';} ?></a>
-        </li>
-      </ul>
-      <a class="navbar-brand m-auto" href="#">
-        <img src="assets/imgs/logo3.png" class="brand-img" alt="">
-        <span class="brand-txt">Eatery</span>
-      </a>
-      <ul class="navbar-nav">
-       
-        <li class="nav-item cart-btn">
-          <a href="cart.php" class="btn btn-primary ml-xl-4 cart-btn"><img src="assets/imgs/cart.png" id="cart" alt="" srcset=""></a>
-          <a href="<?php if(isset($_SESSION['login'])){echo'assets/php/profile.php';}else{echo'assets/php/error.php';} ?>" class="btn btn-primary ml-xl-4 cart-btn"><img src="assets/imgs/user.png" id="cart" alt=""></a>
-        </li> 
-      </ul>
-    </div>
-    </nav>
-    <!-- header -->
-    <header id="home" class="header">
-    <div class="overlay text-white text-center" id=>
-      <!-- <h1 class="display-2 font-weight-bold my-3">Eatery</h1> -->
-      <h2 class="display-4 mb-3"> Flavors for Royalty </h2>
-      <p class="display-5 mb-5 w-50 text-justify font-italic font-weight-normal">Welcome to Eatery, where we serve delicious food with impeccable service in a warm and inviting atmosphere. Our menu features a wide variety of dishes inspired by global cuisine, ranging from traditional favorites to modern interpretations. Whether you are in the mood for something savory or sweet, we have something for everyone.</p>
-      <a class="btn btn-lg btn-primary" href="#Menu">View Our Menu</a>
-    </div>
-  </header>
-
-  <div class="container-fluid has-bg-overlay text-center text-light has-height-lg middle-items" id="book-table">
-    <div class="">
-      <h2 class="section-title mb-3">BOOK A TABLE</h2>
-      <div class="row">
-        <div class="col-md-3"></div>
-        <div class="col-sm-6 col-md-6 col-xs-12 my-2">
-          <form action="#book-table" method="post">
-            <input type="number" value="<?php if(isset($_SESSION['tt'])){echo $_SESSION['tt']; } ?>" name="table_guests" onchange="check()" id="booktable" class="form-control form-control-lg custom-form-control"
-            placeholder="NUMBER OF GUESTS" min="1" max="5" required>
-            <button type="submit" onclick="clk()" href="#book-table" class="btn btn-lg btn-primary my-4" name="find" id="rounded-btn">FIND TABLE</button>
-          </form> 
+    <?php
+      $navBase = '';
+      $navCollections = $collections;
+      $navActiveCollection = null;
+      $navHasActiveBooking = $hasActiveBooking;
+      include('assets/php/site_header.php');
+    ?>
+    <?php if ($accessDeniedNotice !== '') : ?>
+      <div class="container" style="padding-top:1rem;">
+        <div role="alert" style="padding:0.85rem 1rem;border-radius:8px;border:1px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.12);color:#fecaca;">
+          <?php echo htmlspecialchars($accessDeniedNotice); ?>
         </div>
-        <div class="col-md-3"></div>
       </div>
-      <script>
-
-          function check() {
-            let g = document.getElementById('booktable').value;
-            if(g>5){
-              alert('only 5 members');
-              document.getElementById('booktable').value = 5;
-              
-            }
-            
-          }
-          
-        </script>
-      <div class="row">
-        <div class="col-md-3"></div>
-        <div class="col-sm-6 col-md-6 col-xs-12 my-2">
-          <form action="" method="post">
-          <select type="number" name="table_no" id="table_nn" class="form-control form-control-lg custom-form-control"
-            placeholder="TABLE NUMBER" disabled required>
-             <?php 
-              
-                          // $size = <scri></scri>
-                  if($_SERVER["REQUEST_METHOD"]=="POST"){
-                    if(isset($_POST['find']) && isset($_POST['table_guests'])){
-                      // echo"hello";
-                      $_SESSION['tt'] = $_POST['table_guests'];
-                      $g = $_POST['table_guests'];
-                      $qrr = "select * from book_table where table_status = 'non' && table_size >= $g";
-                      $resss = mysqli_query($conn,$qrr);
-                      $cnt = mysqli_num_rows($resss);
-                      if($cnt>0){
-                        while($table = mysqli_fetch_assoc($resss)){
-                          $no = $table['table_no'];
-                          echo " <option name='table_no' class='btn-primary' value=.$no.>Table : $no</option>";
-                          
-                        }   
-                      }else{
-                        echo " <option class='btn-primary' disabled> Not Available </option>";
-                      }
-                     
-                    }else{
-                      echo " <option class='btn-primary' disabled > Enter Number of Guests </option>";
-                    }
-                  
-                  }
-                      
-
-                          
-
-                  ?> 
-            
-           
-          </select><?php      if(isset($_SESSION['tt'])){
-                                                echo "<script>
-                                                let g1 = parseInt(".$_SESSION['tt'].");
-                                                console.log(g1);
-                                                if(g1>0){
-                                                  document.getElementById('table_nn').disabled = false;
-                                                }
-                                                console.log(g1);
-                                                </script>
-
-                                                "; 
-                                              }
-                             
-                              
-                              ?>
+    <?php endif; ?>
+    <!-- Hero -->
+    <header id="home" class="home-hero">
+      <div class="home-hero__inner wow fadeIn">
+        <span class="home-hero__eyebrow">Welcome to Eatery</span>
+        <h1 class="home-hero__title">Flavors for Royalty</h1>
+        <p class="home-hero__text">Discover our best-selling dishes and curated collections — from handcrafted pizzas to signature burgers, made fresh and served with care.</p>
+        <div class="home-hero__actions">
+          <a class="home-hero__btn home-hero__btn--primary" href="#best-selling">Best Sellers</a>
+          <a class="home-hero__btn home-hero__btn--ghost" href="#featured-menu">Browse Menu</a>
         </div>
-        <div class="col-md-3"></div>
       </div>
-      <div class="row">
-        <div class="col-md-3"></div>
-        <div class="col-sm-6 col-md-6 col-xs-12 my-2">
-                <h6 class="" style="color: #ff214f;">Note: First Input Number of Guests</h6>
-          </div>
-          <div class="col-md-3"></div>
-      </div>
+    </header>
 
-      <button name="book" class="btn btn-lg btn-primary mb-4" id="rounded-btn">BOOK TABLE</button>
-      </form>
-    </div>
-  </div>
-
-
-
-  
-  <div class="d-flex flex-column">
-
-    <!--  Menu Section  -->
-    <div id="Menu" class="text-center bg-dark text-light has-height-md middle-items wow fadeIn">
-    <h2 class="my-3">OUR MENU</h2>
-  </div>
-    <!-- qty-form -->
-
-    <div class="container-fluid qty_form mt-2" id="qty_form">
-      <div class="row">
-        <div class="col"></div>
-        <div class="col-md-3 col-sm-6 col-xs-10">
-          <form class="py-4 pl-4 pr-4" target="_self" action="assets/php/qty_session.php" method="post">
-            <h4 class="mb-4" id="form_prd_name" style="color: #ff214f"></h4>
-
-            <div class="mb-3">
-              <label for="exampleInputEmail1" class="form-label">Product id</label>
-              <input name="product_no" type="number" class="form-control" id="product_no" aria-describedby="emailHelp"
-                readonly>
-
-            </div>
-            <div class="mb-3">
-              <label for="" class="form-label">Quantity</label>
-              <input name="qty" type="number" class="form-control" id="exampleInputPassword1" min="1" max="10" required>
-
-            </div>
-
-            <button name = "submit" type="submit" class="btn btn-primary " onclick="submit()">submit</button>
-
-          </form>
-        </div>
-        <div class="col"></div>
-      </div>
-    </div>
-  
-    <h2 class=" mb-3 ml-3" style="display:block;">Pizza<button value="pizza" onclick="shw(this.value)" class="ml-3 btn btn-primary">🔻</button> </h5>
-    
-    <div id="pizza" class="prdlist">
-      <?php
-        include('data_insert_take.php');
-        $qr2 = "select * from products where product_type = 'pizza'";
-        $result = mysqli_query($conn, $qr2);
-        if (mysqli_num_rows($result) > 0) {
-          while ($image = mysqli_fetch_assoc($result)) {
-            // echo '<div class="col-sm-6 col-lg-3 Menu-item wow fadeIn">';
-            // echo '<a href="#menu" class="Menu-overlay">';
-            // echo '<img src="assets/uploads/'.$image['product_img'].'" alt="template by DevCRID http://www.devcrud.com/" class="Menu-img">';
-            // echo '<i class="Menu-icon ti-plus"></i>';
-            // echo ' </a></div>';
-        
-            echo '<div class="prd">';
-            echo '<img src="assets/uploads/' . $image['product_img'] . '" alt="hey" class="ml-2 my-2">';
-            echo '<div class="prd_det ml-2 my-2">';
-            echo '<h5 id="prd_name"><b>' . $image['product_name'] . '</b></h5>';
-            echo '<p class="small_text">' . $image['product_type'] . '</p>';
-            echo '<p class="small_text">' . $image['product_desc'] . '</p>';
-            echo '<h6><b>Price : ' . $image['product_price'] . '</b></h6>';
-            echo '</div>';
-            echo '<div class="add ml-1 mr-2">';
-            echo '<a class = "prod" href="#menu" onclick="addto(this.name)" name="' . $image['product_no'] . '_' . $image['product_name'] . '">+</a>';
-            echo '</div></div>';
-            // unset($_POST['submit']);
-          }
-        }else{
-          echo "<div class='ml-5'><p>It will Add soon</p></div>";
-        } 
+    <div class="collections-home">
+      <div class="collections-home__inner">
+        <?php
+          render_collection_carousel_section([
+            'carousel_id' => 'best-selling',
+            'section_id' => 'best-selling',
+            'title' => 'Best Selling',
+            'eyebrow' => 'Customer Favorites',
+            'description' => 'Our most ordered dishes, loved by guests and perfect for your next visit.',
+            'theme' => 'bestselling',
+            'cta_url' => collection_page_url('pizza'),
+            'cta_label' => 'Explore Collections',
+          ], $bestSellingProducts, $conn);
         ?>
+      </div>
     </div>
-    <hr>
-    <h2 class=" mb-3 ml-3" style="display:block;">Burgers<button value="burger" onclick="shw(this.value)" class="ml-3 btn btn-primary"><img class="" src="assets/imgs/down.png" alt=""></button> </h5>
-    <div id="burger" class="prdlist hide">
-      <?php
-        include('data_insert_take.php');
-        $qr2 = "select * from products where product_type = 'Burger'";
-        $result = mysqli_query($conn, $qr2);
-        if (mysqli_num_rows($result) > 0) {
-          while ($image = mysqli_fetch_assoc($result)) {
-            // echo '<div class="col-sm-6 col-lg-3 Menu-item wow fadeIn">';
-            // echo '<a href="#menu" class="Menu-overlay">';
-            // echo '<img src="assets/uploads/'.$image['product_img'].'" alt="template by DevCRID http://www.devcrud.com/" class="Menu-img">';
-            // echo '<i class="Menu-icon ti-plus"></i>';
-            // echo ' </a></div>';
-        
-            echo '<div class="prd">';
-            echo '<img src="assets/uploads/' . $image['product_img'] . '" alt="hey" class="ml-2 my-2">';
-            echo '<div class="prd_det ml-2 my-2">';
-            echo '<h5 id="prd_name"><b>' . $image['product_name'] . '</b></h5>';
-            echo '<p class="small_text">' . $image['product_type'] . '</p>';
-            echo '<p class="small_text">' . $image['product_desc'] . '</p>';
-            echo '<h6><b>Price : ' . $image['product_price'] . '</b></h6>';
-            echo '</div>';
-            echo '<div class="add ml-1 mr-2">';
-            echo '<a class = "prod" href="#menu" onclick="addto(this.name)" name="' . $image['product_no'] . '_' . $image['product_name'] . '">+</a>';
-            echo '</div></div>';
-            // unset($_POST['submit']);
-          }
-        }else{
-          echo "<div class='ml-5'><p>It will Add soon</p></div>";
-        }
-        ?>
-    </div>
-        <hr>
-        <script>
-          var prd = [];
-          function addto(d) {
 
-            var arr = d.split("_");
-            console.log(arr);
-            document.getElementById('product_no').value = arr[0];
-            // let name = document.getElementById('prd_name').value;
-            document.getElementById('form_prd_name').innerText = arr[1]; 
-            document.getElementById('qty_form').classList.add('show');
-            window.location.href = "index.php#Menu";
-            // if(prd.includes(d)){
+    <?php render_featured_menu_section($conn, $featuredMenuProducts); ?>
 
-            // }else{
-            //   prd.push(d);
-            //   console.log(prd);
-            // }
-          }
-          function submit(){
-            document.getElementById('qty_form').classList.remove('show'); 
-          }
+  <section
+    class="book-table-section"
+    id="book-table"
+    data-logged-in="<?php echo $bookIsLoggedIn ? '1' : '0'; ?>"
+    data-max-guests="<?php echo (int) $bookMaxGuests; ?>"
+    data-has-active-booking="<?php echo $hasActiveBooking ? '1' : '0'; ?>"
+  >
+    <div class="book-table-section__inner">
+      <header class="book-table-section__header">
+        <span class="book-table-section__eyebrow">Reservations</span>
+        <h2 class="book-table-section__title">Book a Table</h2>
+        <p class="book-table-section__subtitle" id="bookTableSubtitle">
+          <?php if ($hasActiveBooking) : ?>
+            Your table is reserved. Browse the menu when you are ready.
+          <?php else : ?>
+            Choose your party size, pick an available table, and confirm your reservation in seconds.
+          <?php endif; ?>
+        </p>
+      </header>
 
-          function shw(i) {
-            document.getElementById(i).classList.toggle('hide');
-            // document.getElementById(i).
-          }
-        </script>
+      <div class="book-table-layout" id="bookTableBookingFlow" <?php echo $hasActiveBooking ? 'hidden' : ''; ?>>
+        <aside class="book-table-panel" aria-label="Booking details">
+          <h3 class="book-table-panel__title">Reservation Details</h3>
 
-  </div>
-  
-  <!--  About Section  -->
-  <div id="about" class="container-fluid wow fadeIn" id="about" data-wow-duration="1.5s">
-    <div class="row">
-      <!-- <div class="col-lg-6 has-img-bg"></div> -->
-      <div class="col">
-        <div class="row justify-content-center">
-          <div class="col-sm-8 py-5 my-5">
-            <!-- <div class="col-11"> -->
-            <h2 class="mb-4">About Us</h2>
-            <p>Back in 1954, a man named Ray Kroc discovered a small burger restaurant in California, and wrote the first page of our history. From humble beginnings as a small restaurant, we're proud to have become one of the world's leading food service brands with more than 36,000 restaurants in more than 100 countries</p>
-
+          <div class="book-table-field">
+            <label for="bookingGuests">Number of guests</label>
+            <div class="book-table-guest-stepper">
+              <button type="button" id="bookingGuestsDecrease" aria-label="Decrease guests">−</button>
+              <input type="number" id="bookingGuests" value="<?php echo max(1, min($bookMaxGuests, $bookCurrentGuests)); ?>" min="1" max="<?php echo (int) $bookMaxGuests; ?>" inputmode="numeric">
+              <button type="button" id="bookingGuestsIncrease" aria-label="Increase guests">+</button>
+            </div>
           </div>
+
+          <?php if (!$bookIsLoggedIn) : ?>
+            <p class="book-table-login-note">Please <a href="login.php">log in</a> to reserve a table.</p>
+          <?php endif; ?>
+
+          <div class="book-table-actions">
+            <button type="button" class="book-table-btn book-table-btn--primary" id="bookTableSubmit" <?php echo $bookIsLoggedIn ? '' : 'disabled'; ?>>
+              <span class="book-table-btn__loader" aria-hidden="true"></span>
+              <span>Confirm Booking</span>
+            </button>
+            <button type="button" class="book-table-btn book-table-btn--ghost" id="bookTableRefresh">Refresh Availability</button>
+          </div>
+
+          <div class="book-table-message" id="bookTableMessage" role="status"></div>
+        </aside>
+
+        <div class="book-table-floor" aria-label="Restaurant floor plan">
+          <div class="book-table-floor__head">
+            <h3 class="book-table-floor__title">Live Table Availability</h3>
+            <div class="book-table-legend">
+              <span class="book-table-legend__item"><span class="book-table-legend__dot book-table-legend__dot--available"></span> Available</span>
+              <span class="book-table-legend__item"><span class="book-table-legend__dot book-table-legend__dot--reserved"></span> Reserved</span>
+              <span class="book-table-legend__item"><span class="book-table-legend__dot book-table-legend__dot--occupied"></span> Occupied</span>
+              <span class="book-table-legend__item"><span class="book-table-legend__dot book-table-legend__dot--unavailable"></span> Unavailable</span>
+            </div>
+          </div>
+          <div class="book-table-grid" id="bookTableGrid"></div>
+        </div>
+      </div>
+
+      <div
+        class="book-table-active"
+        id="bookTableActiveReservation"
+        aria-label="Your current reservation"
+        <?php echo $hasActiveBooking ? '' : 'hidden'; ?>
+      >
+        <div class="book-table-active__bar">
+          <span class="book-table-active__indicator" aria-hidden="true"></span>
+          <p class="book-table-active__summary">
+            <strong>Table <span data-field="table-no"><?php echo $hasActiveBooking ? (int) $bookCurrentBooking['table_no'] : ''; ?></span></strong>
+            <span class="book-table-active__sep" aria-hidden="true">·</span>
+            <span data-field="capacity"><?php echo ($hasActiveBooking && !empty($bookCurrentBooking['capacity'])) ? (int) $bookCurrentBooking['capacity'] . ' seats' : ''; ?></span>
+            <span class="book-table-active__sep" aria-hidden="true">·</span>
+            <span data-field="guests"><?php echo $hasActiveBooking ? (int) $bookCurrentBooking['guests'] . ' guest' . ((int) $bookCurrentBooking['guests'] === 1 ? '' : 's') : ''; ?></span>
+            <span class="book-table-active__badge" data-field="status"><?php echo $hasActiveBooking ? 'Confirmed' : ''; ?></span>
+          </p>
+          <a class="book-table-active__link" href="#featured-menu">Browse Menu</a>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
 
-  
-  <!-- page footer  -->
-  <div class="container-fluid bg-dark text-light has-height-md middle-items border-top text-center wow fadeIn">
-    <div class="row">
-      <div class="col-sm-4">
-        <h3>EMAIL US</h3>
-        <P class="text-muted">Contact@eatery.com</P>
-      </div>
-      <div class="col-sm-4">
-        <h3>CALL US</h3>
-        <P class="text-muted">+91 9898252898</P>
-      </div>
-      <div class="col-sm-4">
-        <h3>FIND US</h3>
-        <P class="text-muted">111, Platinam hub,Noida</P>
-      </div>
-    </div>
-  </div>
 
-    <!-- end of page footer -->
+  <?php include('assets/php/about_section.php'); ?>
+
+  <?php include('assets/php/site_footer.php'); ?>
+
+    <?php include('assets/php/cart_modal.php'); ?>
 
 	<!-- core  -->
     <script src="assets/vendors/jquery/jquery-3.4.1.js"></script>
@@ -371,6 +240,12 @@ include('data_insert_take.php');
 
     <!-- FoodHut js -->
     <script src="assets/js/foodhut.js"></script>
+    <script src="assets/js/menu-carousel.js"></script>
+    <script src="assets/js/featured-menu.js"></script>
+    <script src="assets/js/add-to-cart.js"></script>
+    <script src="assets/js/profile-menu.js"></script>
+    <script src="assets/js/book-table.js"></script>
+    <script src="assets/js/about.js"></script>
 
 </body>
 </html>

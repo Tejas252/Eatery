@@ -1,10 +1,33 @@
-.qty_form{
-    display: none;
+.qty_form {
+  display: none;
+  max-width: 420px;
+  margin: 1.5rem auto 0;
+  background: var(--eatery-surface);
+  border: 1px solid var(--eatery-border-strong);
+  border-radius: var(--eatery-radius-lg);
+  color: var(--eatery-text);
 }
 
-.show{
-    display: inline;
+.qty_form .form-control {
+  background: var(--eatery-surface-elevated);
+  border-color: var(--eatery-border-strong);
+  color: var(--eatery-text);
 }
-.hide{
-    display: none;
+
+.qty_form .form-control:focus {
+  border-color: var(--eatery-border-focus);
+  box-shadow: var(--eatery-focus-ring);
+}
+
+.qty_form .form-label {
+  color: var(--eatery-text-secondary);
+  font-size: 0.85rem;
+}
+
+.show {
+  display: block;
+}
+
+.hide {
+  display: none;
 }

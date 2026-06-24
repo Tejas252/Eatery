@@ -1,12 +1,10 @@
 <?php
 
-    session_start();
-    unset($_SESSION['login']);
-    unset($_SESSION['username']);
-    unset($_SESSION['name']);
-    unset($_SESSION['email']);
-    unset($_SESSION['phone']);
+session_start();
 
-    header('location:../../index.php');
+require_once __DIR__ . '/auth_helpers.php';
 
-?>
+auth_clear_session();
+
+header('Location: ../../index.php');
+exit;

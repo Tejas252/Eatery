@@ -1,0 +1,159 @@
+/* Table reservation management */
+.admin-table-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-table-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.admin-table-actions .admin-btn--sm {
+  min-width: 64px;
+  justify-content: center;
+}
+
+.admin-btn--edit {
+  background: rgba(var(--eatery-accent-rgb), 0.14);
+  border-color: rgba(var(--eatery-accent-rgb), 0.32);
+  color: var(--accent-hover);
+}
+
+.admin-btn--edit:hover {
+  background: rgba(var(--eatery-accent-rgb), 0.22);
+  color: #ffd699;
+}
+
+.admin-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.admin-table--reservations {
+  table-layout: fixed;
+}
+
+.admin-table--reservations th:nth-child(1),
+.admin-table--reservations td:nth-child(1) {
+  width: 100px;
+}
+
+.admin-table--reservations th:nth-child(2),
+.admin-table--reservations td:nth-child(2) {
+  width: 130px;
+}
+
+.admin-table--reservations th:nth-child(3),
+.admin-table--reservations td:nth-child(3) {
+  width: auto;
+}
+
+.admin-table--reservations th.admin-table__actions-col,
+.admin-table--reservations td.admin-table__actions-cell {
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
+}
+
+.admin-table-capacity {
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .admin-table-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
+
+/* Modals (shared with product admin) */
+.admin-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.admin-modal[hidden] {
+  display: none;
+}
+
+.admin-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(3px);
+}
+
+.admin-modal__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(480px, 100%);
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  border-radius: var(--eatery-radius-lg);
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  box-shadow: var(--eatery-shadow-lg);
+  animation: adminTableModalIn 0.25s ease;
+}
+
+@keyframes adminTableModalIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.admin-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-modal__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.admin-modal__close {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--eatery-radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.admin-modal__body {
+  padding: 1.15rem;
+}
+
+.admin-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  padding: 0.85rem 1.15rem 1.15rem;
+  border-top: 1px solid var(--border);
+}
+
+.admin-table-form-grid {
+  display: grid;
+  gap: 1rem;
+}

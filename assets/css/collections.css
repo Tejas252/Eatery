@@ -1,0 +1,387 @@
+/* ── Homepage hero ───────────────────────────────────────────────────── */
+.home-hero {
+  position: relative;
+  min-height: 52vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5.5rem 1.25rem 4rem;
+  background: var(--eatery-gradient-hero);
+  color: var(--eatery-text);
+  font-family: var(--eatery-font);
+}
+
+.home-hero__inner {
+  max-width: 720px;
+  text-align: center;
+}
+
+.home-hero__eyebrow {
+  display: inline-block;
+  margin-bottom: 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--eatery-accent-light);
+}
+
+.home-hero__title {
+  margin: 0 0 0.85rem;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.home-hero__text {
+  margin: 0 auto 1.5rem;
+  max-width: 540px;
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  line-height: 1.65;
+  color: var(--eatery-text-secondary);
+}
+
+.home-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.home-hero__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 1.35rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.home-hero__btn--primary {
+  background: var(--eatery-gradient-primary);
+  color: var(--eatery-text);
+  box-shadow: var(--eatery-shadow-accent);
+}
+
+.home-hero__btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--eatery-shadow-accent-hover);
+  color: var(--eatery-text);
+  text-decoration: none;
+}
+
+.home-hero__btn--ghost {
+  border: 1px solid rgba(var(--eatery-text-rgb), 0.22);
+  background: var(--eatery-surface-hover);
+  color: var(--eatery-text);
+}
+
+.home-hero__btn--ghost:hover {
+  background: rgba(var(--eatery-text-rgb), 0.1);
+  color: var(--eatery-text);
+  text-decoration: none;
+}
+
+/* ── Collection sections (homepage) ──────────────────────────────────── */
+.collections-home {
+  background: var(--eatery-gradient-section);
+  color: var(--eatery-text);
+  padding: 3.5rem 0 4.5rem;
+  font-family: var(--eatery-font);
+}
+
+.collection-section {
+  padding: 2.5rem 0 0;
+}
+
+.collection-section:first-child {
+  padding-top: 0;
+}
+
+.collection-section__inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.collection-section__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--eatery-border);
+}
+
+.collection-section__eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--eatery-accent);
+  margin-bottom: 0.35rem;
+}
+
+.collection-section--bestselling .collection-section__eyebrow {
+  color: var(--eatery-gold);
+}
+
+.collection-section--pizza .collection-section__eyebrow {
+  color: var(--eatery-pizza);
+}
+
+.collection-section--burger .collection-section__eyebrow {
+  color: var(--eatery-burger);
+}
+
+.collection-section__title {
+  margin: 0;
+  font-size: clamp(1.6rem, 2.5vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.collection-section__desc {
+  margin: 0.5rem 0 0;
+  max-width: 560px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: rgba(var(--eatery-text-rgb), 0.58);
+}
+
+.collection-section__count {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  color: var(--eatery-text-muted);
+}
+
+.collection-section__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.collection-section__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--eatery-border-strong);
+  background: var(--eatery-surface);
+  color: var(--eatery-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.collection-section__cta:hover {
+  background: var(--eatery-accent-subtle);
+  border-color: rgba(var(--eatery-accent-rgb), 0.35);
+  color: var(--eatery-text);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.collection-section--bestselling {
+  position: relative;
+}
+
+.collection-section--bestselling::before {
+  content: '';
+  position: absolute;
+  inset: -1rem 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--eatery-gold) 35%, transparent), transparent);
+  pointer-events: none;
+}
+
+/* ── Collection page ─────────────────────────────────────────────────── */
+.collection-page {
+  min-height: 100vh;
+  background: var(--eatery-gradient-section);
+  color: var(--eatery-text);
+  font-family: var(--eatery-font);
+}
+
+.collection-page__main {
+  padding: 6.5rem 0 4rem;
+}
+
+.collection-page__inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.collection-page__hero {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--eatery-border);
+}
+
+.collection-page__breadcrumb {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  color: var(--eatery-text-muted);
+}
+
+.collection-page__breadcrumb a {
+  color: rgba(var(--eatery-text-rgb), 0.65);
+  text-decoration: none;
+}
+
+.collection-page__breadcrumb a:hover {
+  color: var(--eatery-accent-light);
+}
+
+.collection-page__eyebrow {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--eatery-accent);
+}
+
+.collection-page__title {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.85rem, 4vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.collection-page__desc {
+  margin: 0;
+  max-width: 620px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(var(--eatery-text-rgb), 0.58);
+}
+
+.collection-page__meta {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--eatery-text-muted);
+}
+
+.collection-page__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+.collection-page__grid-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+}
+
+.collection-page__grid-item .product-carousel__slide {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  scroll-snap-align: unset;
+}
+
+.collection-page__grid-item .product-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 420px;
+  height: 100%;
+}
+
+.collection-page__empty {
+  padding: 3rem 1rem;
+  text-align: center;
+  border: 1px dashed var(--eatery-border-strong);
+  border-radius: 16px;
+  color: rgba(var(--eatery-text-rgb), 0.55);
+}
+
+.collection-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 2rem;
+  color: var(--eatery-accent-light);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.collection-page__back:hover {
+  text-decoration: underline;
+  color: var(--eatery-accent-light);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 1199px) {
+  .collection-page__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 991px) {
+  .collection-page__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .collection-section__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .collection-section__actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 767px) {
+  .home-hero {
+    min-height: 44vh;
+    padding-top: 6rem;
+  }
+
+  .collection-page__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .collection-page__grid-item .product-card {
+    min-height: 390px;
+  }
+}
+
+@media (max-width: 480px) {
+  .collection-section__inner,
+  .collection-page__inner {
+    padding: 0 0.85rem;
+  }
+
+  .home-hero__actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .home-hero__btn {
+    width: 100%;
+  }
+}

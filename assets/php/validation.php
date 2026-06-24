@@ -1,55 +1,112 @@
 <?php
-    include("config.php");
-    // $conn = mysqli_connect('localhost','root','','eatery');
-  
+session_start();
 
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth_helpers.php';
 
-   if(isset($_POST['submit']) ){
-        if(isset($_POST['terms'])){
-            $email = $_POST['Email'];
-            $username = $_POST['username'];
-            $name = $_POST['name'];
-            $phone = $_POST['phone'];
-            $password= $_POST['password'];
-            $cpassword = $_POST['cpassword'];
-        
-                if($password == $cpassword){
-                    // echo $phone;
-                    $query = "insert into customer (cust_email,cust_username,cust_name,cust_mobile,cust_password) values ('$email','$username','$name',$phone,'$password')"; 
-                    $qua= mysqli_query($conn,$query);
-                    if(!$qua)
-                    {
-                        echo mysqli_error($conn);
-                    }else{
-                        
-                        header("location:../../login.php");
-                    }
-                }else{
-                    echo"<script>alert('Both password is different'); window.location.href = '../../signup.php';</script>";
-                }
-        }else{
-            echo"<script>alert('Accept Terms & Condition'); window.location.href = '../../signup.php';</script>";
-        }
-   
-        
-   }
+function auth_redirect(string $path): void
+{
+    header('Location: ' . $path);
+    exit;
+}
 
-   if(isset($_POST['forgot'])){
-        $email = $_POST['Email'];
-        $phone = $_POST['phone'];
-        $password= $_POST['password'];
-        $cpassword = $_POST['cpassword'];
-        if($password == $cpassword){
+function auth_signup_redirect(string $error = '', string $message = ''): void
+{
+    if ($error !== '') {
+        auth_redirect('../../signup.php?error=' . urlencode($error));
+    }
+    if ($message !== '') {
+        $_SESSION['auth_notice'] = $message;
+    }
+    auth_redirect('../../signup.php');
+}
 
-            $qr = "update customer set cust_password = '$password' where cust_email = '$email' && cust_mobile = $phone";
-            $res = mysqli_query($conn,$qr);
-            if($res){
-                header('location:../../login.php');
-            }
-        }else{
-            echo"<script>alert('Both password is different'); window.location.href = '../../signup.php';</script>";
-        }
-   }
+function auth_login_redirect(string $query = ''): void
+{
+    $target = '../../login.php';
+    if ($query !== '') {
+        $target .= '?' . ltrim($query, '?');
+    }
+    auth_redirect($target);
+}
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    auth_redirect('../../signup.php');
+}
 
-?>
+if (!isset($_POST['submit'])) {
+    auth_signup_redirect('invalid', '');
+}
+
+if (!isset($_POST['terms'])) {
+    auth_signup_redirect('terms');
+}
+
+$email = trim((string) ($_POST['Email'] ?? ''));
+$username = trim((string) ($_POST['username'] ?? ''));
+$name = trim((string) ($_POST['name'] ?? ''));
+$phone = trim((string) ($_POST['phone'] ?? ''));
+$password = (string) ($_POST['password'] ?? '');
+$cpassword = (string) ($_POST['cpassword'] ?? '');
+
+if ($email === '' || $username === '' || $name === '' || $phone === '' || $password === '' || $cpassword === '') {
+    auth_signup_redirect('required');
+}
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    auth_signup_redirect('email');
+}
+
+if (auth_is_admin_email($email)) {
+    auth_signup_redirect('email');
+}
+
+if (strlen($username) > 8) {
+    auth_signup_redirect('username');
+}
+
+if (strlen($name) > 20) {
+    auth_signup_redirect('name');
+}
+
+if (strlen($password) > 20) {
+    auth_signup_redirect('password_length');
+}
+
+if (!preg_match('/^\d{10,15}$/', $phone)) {
+    auth_signup_redirect('phone');
+}
+
+if ($password !== $cpassword) {
+    auth_signup_redirect('password');
+}
+
+$emailEsc = mysqli_real_escape_string($conn, $email);
+$usernameEsc = mysqli_real_escape_string($conn, $username);
+$nameEsc = mysqli_real_escape_string($conn, $name);
+$phoneEsc = mysqli_real_escape_string($conn, $phone);
+$passwordEsc = mysqli_real_escape_string($conn, $password);
+
+$duplicateCheck = mysqli_query(
+    $conn,
+    "SELECT cust_id FROM customer WHERE cust_email = '$emailEsc' OR cust_username = '$usernameEsc' LIMIT 1"
+);
+
+if (!$duplicateCheck) {
+    auth_signup_redirect('server');
+}
+
+if (mysqli_num_rows($duplicateCheck) > 0) {
+    auth_signup_redirect('duplicate');
+}
+
+$query = "INSERT INTO customer (cust_email, cust_username, cust_name, cust_mobile, cust_password)
+          VALUES ('$emailEsc', '$usernameEsc', '$nameEsc', '$phoneEsc', '$passwordEsc')";
+$result = mysqli_query($conn, $query);
+
+if (!$result) {
+    auth_signup_redirect('server');
+}
+
+$_SESSION['auth_success'] = 'Your account was created successfully. Please sign in.';
+auth_login_redirect('registered=1');

@@ -1,168 +1,160 @@
 <?php
 session_start();
-include('data_insert_take.php');
-// include('assets/php.config.php');
 
+require_once __DIR__ . '/assets/php/auth_helpers.php';
+
+$authError = '';
+$authSuccess = '';
+
+if (auth_is_admin()) {
+    header('Location: admin_dashboard.php');
+    exit;
+}
+
+if (auth_is_customer()) {
+    header('Location: index.php');
+    exit;
+}
+
+if (!empty($_SESSION['auth_success'])) {
+    $authSuccess = (string) $_SESSION['auth_success'];
+    unset($_SESSION['auth_success']);
+}
+
+if (isset($_GET['error'])) {
+    if ($_GET['error'] === 'denied') {
+        $authError = 'Access denied. Administrator login is required to view that page.';
+    } else {
+        $authError = 'Invalid email or password. Please try again.';
+    }
+}
+
+if (isset($_GET['registered'])) {
+    $authSuccess = 'Account created successfully. Please sign in with your credentials.';
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Start your development with FoodHut landing page.">
-  <meta name="author" content="Devcrud">
-  <title>Eatery : Flavor For Royalty</title>
+  <meta name="description" content="Sign in to your Eatery account">
+  <title>Login | Eatery</title>
   <link rel="icon" href="assets/imgs/logo3.png">
-
-  <!-- font icons -->
-  <link rel="stylesheet" href="assets/vendors/themify-icons/css/themify-icons.css">
-
-  <link rel="stylesheet" href="assets/vendors/animate/animate.css">
-
-  <!-- Bootstrap + FoodHut main styles -->
-  <link rel="stylesheet" href="assets/css/foodhut.css">
-  <link rel="stylesheet" href="assets/css/menu.css">
-  <link rel="stylesheet" href="assets/css/qty.css">
-  <link rel="stylesheet" href="assets/css/login.css">
-  <style>
-   .te{
-    background: transparent;
-    border: none;
-   }
-</style>
-  <!-- <link rel="stylesheet" href="cart.css"> -->
+  <link rel="stylesheet" href="assets/css/theme.css">
+  <link rel="stylesheet" href="assets/css/auth.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
 </head>
-
-<body data-spy="scroll" data-target=".navbar" data-offset="40" id="home">
-      <!-- Navbar -->
-      <nav class="custom-navbar navbar navbar-expand-lg navbar-dark fixed-top" data-spy="affix" data-offset-top="10">
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav">
-      <li class="nav-item">      
-          <input type="button" value="Home"  class="nav-link te"  href="" onclick="home(this.name)" name="index.php#Home">
-        </li>
-        <li class="nav-item">
-        <input type="button" value="Book-table"  class="nav-link te"  href="" onclick="home(this.name)" name="index.php#book-table">
-        </li>
-        <li class="nav-item">
-        <input type="button" value="Menu"  class="nav-link te"  href="" onclick="home(this.name)" name="index.php#Menu">
-
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#About">About</a>
-        </li>
-        <!-- <li class="nav-item">
-          <a class="nav-link" href="<?php //if($_SESSION['login']){echo'../php/logout.php';}else{echo '../../login.php';} ?>"><?php// if($_SESSION['login']){echo'Log-out';}else{echo 'Login';} ?></a>
-        </li> -->
-      </ul>
-      <a class="navbar-brand m-auto" href="#">
-      <img src="assets/imgs/logo3.png" class="brand-img" alt="" onclick="home(this.name)" name="index.php#Home">
-        <span class="brand-txt">Eatery</span>
+<body class="auth-page">
+  <div class="auth-shell">
+    <header class="auth-topbar">
+      <a href="index.php" class="auth-brand">
+        <img src="assets/imgs/logo3.png" alt="" class="auth-brand__logo">
+        <span class="auth-brand__name">Eatery</span>
       </a>
-      <ul class="navbar-nav">
-       
-        <li class="nav-item cart-btn">
-          <a href="cart.php" class="btn btn-primary ml-xl-4 cart-btn"><img src="assets/imgs/cart.png" id="cart" alt=""
-              srcset=""></a>
-          <a href="<?php if(isset($_SESSION['login'])){echo'assets/php/profile.php';}else{echo'assets/php/error.php';} ?>" class="btn btn-primary ml-xl-4 cart-btn"><img src="assets/imgs/user.png" id="cart" alt=""></a>
-        </li>
-      </ul>
-    </div>
-    </nav>
+      <a href="signup.php" class="auth-topbar__link">Create account</a>
+    </header>
 
+    <main class="auth-main">
+      <div class="auth-layout">
+        <aside class="auth-panel auth-panel--brand" aria-hidden="false">
+          <img src="assets/imgs/logo3.png" alt="Eatery" class="auth-panel__logo">
+          <h1 class="auth-panel__title">Welcome back</h1>
+          <p class="auth-panel__text">Sign in to order your favorites, track deliveries, and manage your table reservations.</p>
+          <ul class="auth-panel__features">
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12l4 4L19 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Fast ordering &amp; delivery
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12l4 4L19 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Saved profile &amp; order history
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12l4 4L19 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Secure account access
+            </li>
+          </ul>
+        </aside>
 
-  <!-- header -->
+        <section class="auth-panel auth-panel--form">
+          <div class="auth-form__header">
+            <span class="auth-form__eyebrow">Account</span>
+            <h2 class="auth-form__title">Sign in</h2>
+            <p class="auth-form__subtitle">Enter your credentials to continue</p>
+          </div>
 
-  <!-- <header id="home" class="header">
-    <div class="overlay text-white text-center" id=>
-      <h1 class="display-2 font-weight-bold my-3">Eatery</h1>
-      <h2 class="display-4 mb-5"> Flavors for Royalty </h2>
-      <a class="btn btn-lg btn-primary" href="#Menu">View Our Menu</a>
-    </div>
-  </header> -->
+          <?php if ($authSuccess !== '') : ?>
+            <div class="auth-alert auth-alert--success" role="status"><?php echo htmlspecialchars($authSuccess); ?></div>
+          <?php endif; ?>
 
-  <!-- <header id="home" class="header"> -->
-    <!-- <div class="overlay text-white text-center" id=> -->
+          <?php if ($authError !== '') : ?>
+            <div class="auth-alert auth-alert--error" role="alert"><?php echo htmlspecialchars($authError); ?></div>
+          <?php endif; ?>
 
-    <!-- header -->
-    <header id="home" class="header">
-    <div class="overlay text-white text-center" id=>
-    <div class="container-fluid form" >
-        <div class="row">
-            <div class="col"></div>
-            <div class="col">
-             <!-- <img  src="assets/imgs/logo3.png" alt="" class="logo cart-btn">   -->
+          <form id="loginForm" action="assets/php/verification.php" method="post" novalidate>
+            <div class="auth-field">
+              <label for="login-email" class="auth-label">Email address</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-wrap__icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 6h16v12H4zM4 7l8 6 8-6" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                </span>
+                <input
+                  type="email"
+                  name="email"
+                  id="login-email"
+                  class="auth-input"
+                  placeholder="you@example.com"
+                  autocomplete="email"
+                  required
+                >
+              </div>
+              <span class="auth-field__error" aria-live="polite"></span>
             </div>
-            <div class="col"></div>
-        </div>
-        <div class="row">
-            <div class="col"></div>
-            <div class="col-md-3 col-sm-6 col-xs-10">
-                <form class="py-4 pl-4 pr-4"  target="_self" action="assets/php/verification.php" method="post">
-                    <h1 class="mb-4">Login</h1>
-                    <div class="mb-3">
-                      <label for="exampleInputEmail1" class="form-label">Email</label>
-                      <input name="email" type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="xyz@gmail.com" required>
-                      <!-- <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div> -->
-                    </div>
-                    <div class="mb-3">
-                      <label for="exampleInputPassword1" class="form-label">Password</label>
-                      <input name="password" type="password" class="form-control" id="exampleInputPassword1" required>
-                      <p class="sm-text"><a href="assets/php/forgot.php">Forget password?</a></p>
-                    </div>
-                    <!-- <div class="mb-3 form-check">
-                      <input type="checkbox" class="form-check-input" id="exampleCheck1">
-                      <label class="form-check-label" for="exampleCheck1">Check me out</label>
-                    </div> -->
-                    <button type="submit" class="btn btn1 btn-primary " name="login">Login</button>
-                    <p class="sm-text mt-2">Don't have an account?<a href="signup.php"> Sign Up</a></p>
-                  </form>
+
+            <div class="auth-field">
+              <label for="login-password" class="auth-label">Password</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-wrap__icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 11V8a4 4 0 118 0v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </span>
+                <input
+                  type="password"
+                  name="password"
+                  id="login-password"
+                  class="auth-input auth-input--password"
+                  placeholder="Enter your password"
+                  autocomplete="current-password"
+                  required
+                >
+                <button type="button" class="auth-input-wrap__toggle" data-password-toggle="login-password" aria-label="Show password" aria-pressed="false">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+                </button>
+              </div>
+              <span class="auth-field__error" aria-live="polite"></span>
             </div>
-            <div class="col"></div>
-        </div>
+
+            <div class="auth-row">
+              <span></span>
+              <a href="forgot.php" class="auth-link">Forgot password?</a>
+            </div>
+
+            <button type="submit" name="login" class="auth-btn">
+              <span class="auth-btn__spinner" aria-hidden="true"></span>
+              <span class="auth-btn__label">Sign in</span>
+            </button>
+
+            <p class="auth-footer">
+              Don&rsquo;t have an account? <a href="signup.php">Sign up</a>
+            </p>
+          </form>
+        </section>
       </div>
-    </div>
-  </header>
-  <div class="container-fluid bg-dark text-light has-height-md middle-items border-top text-center wow fadeIn">
-    <div class="row">
-      <div class="col-sm-4">
-        <h3>EMAIL US</h3>
-        <P class="text-muted">info@website.com</P>
-      </div>
-      <div class="col-sm-4">
-        <h3>CALL US</h3>
-        <P class="text-muted">(123) 456-7890</P>
-      </div>
-      <div class="col-sm-4">
-        <h3>FIND US</h3>
-        <P class="text-muted">12345 Fake ST NoWhere AB Country</P>
-      </div>
-    </div>
+    </main>
   </div>
-    <!-- </div> -->
-  <!-- </header> -->
-  <!-- end of page footer -->
-  <script src="assets/js/function.js"></script>
 
-	<!-- core  -->
-  <script src="assets/vendors/jquery/jquery-3.4.1.js"></script>
-    <script src="assets/vendors/bootstrap/bootstrap.bundle.js"></script>
-
-    <!-- bootstrap affix -->
-    <script src="assets/vendors/bootstrap/bootstrap.affix.js"></script>
-
-    <!-- wow.js -->
-    <script src="assets/vendors/wow/wow.js"></script>
-    
-    <!-- google maps -->
-    <!-- <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtme10pzgKSPeJVJrG1O3tjR6lk98o4w8&callback=initMap"></script> -->
-
-    <!-- FoodHut js -->
-    <script src="assets/js/foodhut.js"></script>
-    </body>
+  <script src="assets/js/auth.js"></script>
+</body>
 </html>
